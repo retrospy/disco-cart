@@ -1,0 +1,34 @@
+### Footprint positions - created on Fri Sep 15 10:39:47 2023 ###
+### Printed by KiCad version 7.0.7
+## Unit = mm, Angle = deg.
+## Side : All
+# Ref       Val              Package                                           PosX       PosY       Rot  Side
+CONN2       5530843-5        5530843-5                                      32.4485    78.4225    0.0000  bottom
+SW1         DS01-254-S-02BE  DS01-254-S-02BE                                39.7510    70.6120  -90.0000  bottom
+SW2         CL-SB-13B-01T‎  CL-SB-13B-01T                                  53.2760    70.7070  180.0000  bottom
+U1          Teensy4.1        Teensy41                                       32.7025    57.5945    0.0000  bottom
+C1          1uF              C_0805_2012Metric_Pad1.18x1.45mm_HandSolder    20.9169    34.9592  -90.0000  top
+C3          0.1uF            C_0805_2012Metric_Pad1.18x1.45mm_HandSolder    22.9489    34.9592  -90.0000  top
+C4          0.1uF            C_0805_2012Metric_Pad1.18x1.45mm_HandSolder    12.2809    41.0552   90.0000  top
+C5          0.1uF            C_0805_2012Metric_Pad1.18x1.45mm_HandSolder    22.9489    39.0232   90.0000  top
+C6          10uF             C_0805_2012Metric_Pad1.18x1.45mm_HandSolder     2.9630    69.7611    0.0000  top
+C8          1uF              C_0805_2012Metric_Pad1.18x1.45mm_HandSolder     2.9630    71.7931    0.0000  top
+C9          0.1uF            C_0805_2012Metric_Pad1.18x1.45mm_HandSolder     3.0060    73.8251    0.0000  top
+C10         0.1uF            C_0805_2012Metric_Pad1.18x1.45mm_HandSolder    47.2225    36.1950  180.0000  top
+C11         0.1uF            C_0805_2012Metric_Pad1.18x1.45mm_HandSolder    46.3169    39.5312  -90.0000  top
+CONN1       Conn_Cartridge   Connector_Cartridge                             4.5720     0.3810    0.0000  top
+D1          PMEG2005CT       SOT-23_Handsoldering                            5.6120    36.9697  180.0000  top
+D2          MMBD717LT1G‎   SOT-323_SC-70_Handsoldering                    11.2649    36.6557   90.0000  top
+DISCO-CART  logo             logo                                           30.4800    28.3210    0.0000  top
+R1          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    14.3129    30.3817   90.0000  top
+R2          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    16.3449    30.3817   90.0000  top
+R3          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    17.0180    42.5610  -90.0000  top
+R4          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    14.4780    42.5417  -90.0000  top
+R5          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    52.2605    38.4650  -90.0000  top
+R6          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    20.9169    38.9857  -90.0000  top
+R7          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    20.9169    43.0817   90.0000  top
+R8          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    50.2920    38.4650  -90.0000  top
+R9          10k              R_0805_2012Metric_Pad1.20x1.40mm_HandSolder    48.3489    39.4937  -90.0000  top
+U2          SN74CBTLV3125PW  TSSOP-14_4.4x5mm_P0.65mm                       16.3449    36.4617   90.0000  top
+U3          SST39VF6401B     TSOP-I-48_18.4x12mm_P0.5mm                     34.6329    36.4617  180.0000  top
+## End
