@@ -1,0 +1,71 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="DiscoCartUtil.MainWindow"
+       Title="V.Smile Disco-Cart Utility" SizeToContent="WidthAndHeight"  MinWidth="480" MinHeight="350" MaxWidth="480" MaxHeight="432" Foreground="#FFFFFF" Background="#e98839" CanResize="false" Opened="Window_Open">
+	<Grid Height="350" Width="480">
+		<Label Name="ComPortLabel" Content="COM Port:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="#fdc137" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" FontSize="16"/>
+		<ComboBox Name="ComPortCombo"  Margin="20,30,0,0" Width="447" Height="29.9" VerticalAlignment="Top" BorderBrush="#FF252525" FontFamily="Segoe UI" FontSize="12" Background="#efefef" ItemsSource="{Binding Ports}" SelectedItem="{Binding Ports.SelectedItem}" SelectionChanged="ComPortCombo_SelectionChanged">
+			<ComboBox.ItemTemplate>
+				<DataTemplate>
+					<TextBlock Text="{Binding}"/>
+				</DataTemplate>
+			</ComboBox.ItemTemplate>
+		</ComboBox>
+		<Label Name="BankLabel" Content="Bank:" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Foreground="#fdc137" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" FontSize="16"/>
+		<ComboBox Name="BankCombo" Margin="20,90,0,0" SelectedIndex="0" Width="447" Height="29.9" VerticalAlignment="Top" BorderBrush="#FF252525" FontFamily="Segoe UI" FontSize="12" Background="#efefef">
+			<ComboBox.Items>
+				<ComboBoxItem Name="BankLow">LOW</ComboBoxItem>
+				<ComboBoxItem Name="BankHigh">HIGH</ComboBoxItem>
+			</ComboBox.Items>
+		</ComboBox>
+		<Label Name="LimitLabel" Content="Size:" HorizontalAlignment="Left" Margin="10,130,0,0" VerticalAlignment="Top" Foreground="#fdc137" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" FontSize="16" />
+		<ComboBox Name="LimitCombo" Margin="20,150,0,0" SelectedIndex="2" Width="447" Height="29.9" VerticalAlignment="Top" BorderBrush="#FF252525" FontFamily="Segoe UI" FontSize="12" Background="#efefef">
+			<ComboBox.Items>
+				<ComboBoxItem Name="Limit2MB">2MB (0xFFFFF)</ComboBoxItem>
+				<ComboBoxItem Name="Limit4MB">4MB (0x1FFFFF)</ComboBoxItem>
+				<ComboBoxItem Name="Limit8MB">8MB (0x3FFFFF)</ComboBoxItem>
+			</ComboBox.Items>
+		</ComboBox>
+		<Label Name="FilenameLabel"  Content="Filename:" HorizontalAlignment="Left" Margin="10,190,0,0" VerticalAlignment="Top" Foreground="#fdc137" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" FontSize="16" />
+		<TextBox Name="FilenameText" Margin="20,210,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="24" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito"  Background="#efefef" BorderBrush="#FF656525" TextAlignment="Left" Width="400" ScrollViewer.VerticalScrollBarVisibility="Hidden" >
+			<TextBox.Styles>
+				<Style Selector="TextBox:disabled">
+				<Setter Property="Foreground" Value="#502310"/>
+				</Style>
+			</TextBox.Styles>
+		</TextBox>
+		<Button Name="goButton" Width="40" Height="30" Content="..." HorizontalContentAlignment="Center" Margin="0,210,15,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="SaveAs_Click">
+			<Button.Styles>
+				<Style Selector="Button:pointerover /template/ ContentPresenter">
+					<Setter Property="Background" Value="#101942"/>
+					<Setter Property="TextBlock.Foreground" Value="#92411d"/>					
+					<Setter Property="ContentTemplate"></Setter>
+				</Style>
+			</Button.Styles>
+		</Button>
+		<Button Name="dumpButton" Width="210" Height="50" Content="Dump" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="20,250,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="Dump_Click">
+			<Button.Styles>
+				<Style Selector="Button:pointerover /template/ ContentPresenter">
+					<Setter Property="Background" Value="#101942"/>
+					<Setter Property="TextBlock.Foreground" Value="#fdc137"/>
+					<Setter Property="ContentTemplate"></Setter>
+				</Style>
+			</Button.Styles>
+		</Button>
+		<Button Name="uploadButton" Width="210" Height="50" Content="Upload" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="0,250,15,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="Upload_Click">
+			<Button.Styles>
+				<Style Selector="Button:pointerover /template/ ContentPresenter">
+					<Setter Property="Background" Value="#101942"/>
+					<Setter Property="TextBlock.Foreground" Value="#fdc137"/>					
+					<Setter Property="ContentTemplate"></Setter>
+				</Style>
+			</Button.Styles>
+		</Button>
+		<ProgressBar  Name="progressBar" ShowProgressText="true" Margin="20,310,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="24" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#efefef" Foreground="#6981cd" BorderBrush="#FF6565" Width="447">
+			
+		</ProgressBar>
+	</Grid>
+</Window>
