@@ -63,24 +63,24 @@ if %ERRORLEVEL% NEQ 0 goto :fail
 copy DiscoCartUtil-Windows.zip DiscoCartUtil-Upload\DiscoCartUtil-Windows-x64.zip
 if %ERRORLEVEL% NEQ 0 goto :fail
 
-if exist "..\..\..\upload\DiscoCartUtil-Linux-x64.tar.gz" (
-  copy ..\..\..\upload\DiscoCartUtil-Linux-x64.tar.gz DiscoCartUtil-Upload
+if exist "..\..\..\..\upload\DiscoCartUtil-Linux-x64.tar.gz" (
+  copy ..\..\..\..\upload\DiscoCartUtil-Linux-x64.tar.gz DiscoCartUtil-Upload
   if %ERRORLEVEL% NEQ 0 goto :fail
 )
-if exist "..\..\..\upload\DiscoCartUtil-Linux-arm64.tar.gz" (
-  copy ..\..\..\upload\DiscoCartUtil-Linux-arm64.tar.gz DiscoCartUtil-Upload
+if exist "..\..\..\..\upload\DiscoCartUtil-Linux-arm64.tar.gz" (
+  copy ..\..\..\..\upload\DiscoCartUtil-Linux-arm64.tar.gz DiscoCartUtil-Upload
   if %ERRORLEVEL% NEQ 0 goto :fail
 )
-if exist "..\..\..\upload\DiscoCartUtilInstall.dmg" (
-  copy ..\..\..\upload\DiscoCartUtilInstall.dmg DiscoCartUtil-Upload
+if exist "..\..\..\..\upload\DiscoCartUtilInstall.dmg" (
+  copy ..\..\..\..\upload\DiscoCartUtilInstall.dmg DiscoCartUtil-Upload
   if %ERRORLEVEL% NEQ 0 goto :fail
 )
-if exist "..\..\..\upload\DiscoCartUtil-Setup-x86.exe" (
-  copy ..\..\..\upload\DiscoCartUtil-Setup-x86.exe DiscoCartUtil-Upload
+if exist "..\..\..\..\upload\DiscoCartUtil-Setup-x86.exe" (
+  copy ..\..\..\..\upload\DiscoCartUtil-Setup-x86.exe DiscoCartUtil-Upload
   if %ERRORLEVEL% NEQ 0 goto :fail
 )
-if exist "..\..\..\upload\DiscoCartUtil-Windows-x86.zip" (
-  copy ..\..\..\upload\DiscoCartUtil-Windows-x86.zip DiscoCartUtil-Upload
+if exist "..\..\..\..\upload\DiscoCartUtil-Windows-x86.zip" (
+  copy ..\..\..\..\upload\DiscoCartUtil-Windows-x86.zip DiscoCartUtil-Upload
   if %ERRORLEVEL% NEQ 0 goto :fail
 )
 
