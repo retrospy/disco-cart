@@ -6,3 +6,7 @@ cmake-build-*/
 .vscode
 out
 node_modules
+/DiscoCartUtil/DiscoCartUtil-Windows.zip
+/DiscoCartUtil/DiscoCartUtil-Setup.exe
+/DiscoCartUtil/DiscoCartUtil-Setup
+/DiscoCartUtil/DiscoCartUtil-Upload
