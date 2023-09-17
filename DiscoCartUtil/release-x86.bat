@@ -17,15 +17,15 @@ rmdir /S /Q DiscoCartUtil-Upload
 mkdir DiscoCartUtil-Setup
 if %ERRORLEVEL% NEQ 0 goto :fail
 
-if exist "..\..\..\certs\codesignpasswd.txt" ( 
-    set /p codesignpasswd=<"..\..\..\certs\codesignpasswd.txt"
+if exist "..\..\..\..\certs\codesignpasswd.txt" ( 
+    set /p codesignpasswd=<"..\..\..\..\certs\codesignpasswd.txt"
 )
 
 cd "bin\Release\net7.0\"
 if %ERRORLEVEL% NEQ 0 goto :fail
 
-if exist "..\..\..\..\..\..\certs\codesign.cer" (
-"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\SignTool" sign /f "..\..\..\..\..\..\certs\codesign.cer" /csp "eToken Base Cryptographic Provider" /k "%codesignpasswd%" /tr http://timestamp.comodoca.com  /td sha256 /fd sha256 /a DiscoCartUtil.exe
+if exist "..\..\..\..\..\..\..\certs\codesign.cer" (
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\SignTool" sign /f "..\..\..\..\..\..\..\certs\codesign.cer" /csp "eToken Base Cryptographic Provider" /k "%codesignpasswd%" /tr http://timestamp.comodoca.com  /td sha256 /fd sha256 /a DiscoCartUtil.exe
 if %ERRORLEVEL% NEQ 0 goto :fail
 )
 
@@ -50,16 +50,16 @@ if %ERRORLEVEL% NEQ 0 goto :fail
 if exist "C:\Program Files (x86)\Actual Installer\actinst.exe" (
 "C:\Program Files (x86)\Actual Installer\actinst.exe" /S ".\DiscoCartUtil-32.aip"
 if %ERRORLEVEL% NEQ 0 goto :fail
-  if exist "..\..\..\certs\codesign.cer" (
-    "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\SignTool" sign /f "..\..\..\certs\codesign.cer" /csp "eToken Base Cryptographic Provider" /k "%codesignpasswd%" /tr http://timestamp.comodoca.com  /td sha256 /fd sha256 /a DiscoCartUtil-Setup.exe
+  if exist "..\..\..\..\certs\codesign.cer" (
+    "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\SignTool" sign /f "..\..\..\..\certs\codesign.cer" /csp "eToken Base Cryptographic Provider" /k "%codesignpasswd%" /tr http://timestamp.comodoca.com  /td sha256 /fd sha256 /a DiscoCartUtil-Setup.exe
     if %ERRORLEVEL% NEQ 0 goto :fail
   )
 )
 
-if exist "..\..\..\upload\" (
-  copy DiscoCartUtil-Setup.exe ..\..\..\upload\DiscoCartUtil-Setup-x86.exe
+if exist "..\..\..\..\upload\" (
+  copy DiscoCartUtil-Setup.exe ..\.\..\..\upload\DiscoCartUtil-Setup-x86.exe
   if %ERRORLEVEL% NEQ 0 goto :fail
-  copy DiscoCartUtil-Windows.zip ..\..\..\upload\DiscoCartUtil-Windows-x86.zip
+  copy DiscoCartUtil-Windows.zip ..\..\..\..\upload\DiscoCartUtil-Windows-x86.zip
   if %ERRORLEVEL% NEQ 0 goto :fail
 )
 
