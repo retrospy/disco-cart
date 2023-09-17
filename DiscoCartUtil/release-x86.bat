@@ -57,7 +57,7 @@ if %ERRORLEVEL% NEQ 0 goto :fail
 )
 
 if exist "..\..\..\..\upload\" (
-  copy DiscoCartUtil-Setup.exe ..\.\..\..\upload\DiscoCartUtil-Setup-x86.exe
+  copy DiscoCartUtil-Setup.exe ..\..\..\..\upload\DiscoCartUtil-Setup-x86.exe
   if %ERRORLEVEL% NEQ 0 goto :fail
   copy DiscoCartUtil-Windows.zip ..\..\..\..\upload\DiscoCartUtil-Windows-x86.zip
   if %ERRORLEVEL% NEQ 0 goto :fail
