@@ -253,18 +253,18 @@ namespace DiscoCartUtil
                     if (isClosing)
                         return;
 
-                    port.Write(string.Format("R${0:X}%", index));
+                    port.Write(string.Format("R${0:x}%", index));
                     while(port.BytesToRead < 5) { }
                     
                     char[] num = new char[4];
-                    num[3] = (char)port.ReadByte();
-                    num[2] = (char)port.ReadByte();
-                    num[1] = (char)port.ReadByte();
                     num[0] = (char)port.ReadByte();
+                    num[1] = (char)port.ReadByte();
+                    num[2] = (char)port.ReadByte();
+                    num[3] = (char)port.ReadByte();
                     _ = port.ReadByte();
                     string s = new(num);
 
-                    buffer.Write(short.Parse(s));
+                    buffer.Write(Convert.ToUInt16(s, 16));
 
                     if (index % 0xFFF == 0)
                     {
@@ -384,7 +384,7 @@ namespace DiscoCartUtil
                         });
                     }
 
-                    string cmd = String.Format("W{0:X}:{1:X}%", index, rom.ReadUInt16());
+                    string cmd = String.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
                     port.Write(cmd);
                     index++;
                 }
