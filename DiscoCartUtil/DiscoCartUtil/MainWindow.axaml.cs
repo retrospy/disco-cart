@@ -236,6 +236,7 @@ namespace DiscoCartUtil
             BinaryWriter? buffer = null;
             try
             {
+                DateTime startTime = DateTime.Now;
                 buffer = new(File.Open(FilenameTextText ?? string.Empty, FileMode.OpenOrCreate));
                 
                 port = new(ComPortComboSelectedValue, 4608000);
@@ -247,34 +248,51 @@ namespace DiscoCartUtil
                     port.Write("BHI%");
 
                 int index = 0;
-
-                while (index != Limit)
+                string cmd = string.Empty;
+                do
                 {
                     if (isClosing)
                         return;
 
-                    port.Write(string.Format("R${0:x}%", index));
-                    while(port.BytesToRead < 5) { }
-                    
-                    char[] num = new char[4];
-                    num[0] = (char)port.ReadByte();
-                    num[1] = (char)port.ReadByte();
-                    num[2] = (char)port.ReadByte();
-                    num[3] = (char)port.ReadByte();
-                    _ = port.ReadByte();
-                    string s = new(num);
-
-                    buffer.Write(Convert.ToUInt16(s, 16));
-
-                    if (index % 0xFFF == 0)
+                    int cmdSent = 0;
+                    do
                     {
-                        Dispatcher.UIThread.Post(() =>
+                        cmd += string.Format("R${0:x}%", index);
+                        cmdSent++;
+                        if (index % 0xFFF == 0)
                         {
-                            progressBar.Value = (int)Math.Round((float)index / Limit * 100.0f);
-                        });
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                progressBar.Value = (int)Math.Round((float)index / Limit * 100.0f);
+                            });
+                        }
+                        if (index == Limit)
+                            break;
+                        
+                        index++;
+                    } while (index % 100 != 0);
+
+                    port.Write(cmd);
+                    cmd  = string.Empty;
+
+                    while (cmdSent != 0)
+                    {
+                        while (port.BytesToRead < 5) { }
+
+                        char[] num = new char[5];
+                        port.Read(num, 0, 5);
+                        --cmdSent;
+                        string s = new(num);
+
+                        buffer.Write(Convert.ToUInt16(s.Trim(), 16));
                     }
-                    index++;
-                }
+
+                } while (index != Limit);
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    AvaloniaMessageBox("Disco-Cart Utility", string.Format("Dump completed in {0} seconds.", (DateTime.Now - startTime).TotalSeconds), ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info);
+                });
 
             }
             catch (IOException)
@@ -358,6 +376,7 @@ namespace DiscoCartUtil
             BinaryReader? rom = null;
             try
             {
+                DateTime startTime = DateTime.Now;
                 port = new(ComPortComboSelectedValue, 4608000);
                 port.Open();
                 byte[] bytes = File.ReadAllBytes(FilenameTextText ?? string.Empty);
@@ -371,6 +390,7 @@ namespace DiscoCartUtil
                 port.Write("ERS%");
 
                 int index = 0;
+                string cmd = string.Empty;
                 while (rom.BaseStream.Position != rom.BaseStream.Length)
                 {
                     if (isClosing)
@@ -384,10 +404,19 @@ namespace DiscoCartUtil
                         });
                     }
 
-                    string cmd = String.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
-                    port.Write(cmd);
+                    if (index % 100 == 0)
+                    {
+                        port.Write(cmd);
+                        cmd = string.Empty;
+                    }
+                    cmd  += string.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
                     index++;
                 }
+                port.Write(cmd);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    AvaloniaMessageBox("Disco-Cart Utility", string.Format("Uploaded completed in {0} seconds.", (DateTime.Now - startTime).TotalSeconds), ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info);
+                });
             }
             catch (IOException)
             {
