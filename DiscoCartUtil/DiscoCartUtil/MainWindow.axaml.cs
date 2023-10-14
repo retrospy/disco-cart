@@ -242,6 +242,11 @@ namespace DiscoCartUtil
                 port = new(ComPortComboSelectedValue, 4608000);
                 port.Open();
 
+                while (port.BytesToRead > 0)
+                {
+                    _ = port.ReadChar();
+                }
+
                 if (BankCombo.SelectedIndex == 0)
                     port.Write("BLOW%");
                 else
