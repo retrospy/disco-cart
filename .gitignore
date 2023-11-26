@@ -10,3 +10,8 @@ node_modules
 /DiscoCartUtil/DiscoCartUtil-Setup.exe
 /DiscoCartUtil/DiscoCartUtil-Setup
 /DiscoCartUtil/DiscoCartUtil-Upload
+/DiscoCartUtil/.visualgdb/CodeDB/firmware.vgdbproj-Debug-Teensy_4 1
+/firmware/.visualgdb/VisualGDBCache/firmware-Debug-Teensy_4_1
+/firmware/Output/Teensy_4_1/Debug
+/DiscoCartV2/.visualgdb
+/DiscoCartV2/DiscoCartUtil-Setup

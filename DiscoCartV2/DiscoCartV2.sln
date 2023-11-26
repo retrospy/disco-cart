@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscoCartUtil", "DiscoCartUtil\DiscoCartUtil.csproj", "{375BDFE8-B4F9-4D90-B733-7FACC88A225E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{60610353-4B25-4839-B01E-C7A357A8CC1B}"
+	ProjectSection(SolutionItems) = preProject
+		release-arm.sh = release-arm.sh
+		release-x86.bat = release-x86.bat
+		release.bat = release.bat
+		release.sh = release.sh
+	EndProjectSection
+EndProject
+Project("{803FD0C6-D64E-4E16-9DC3-1DAEC859A3D2}") = "firmware", "..\firmware\firmware.vgdbproj", "{EB70D08A-0782-4EF5-A336-E26D3A695D73}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Teensy_4 1 = Debug|Teensy_4 1
+		Release|Any CPU = Release|Any CPU
+		Release|Teensy_4 1 = Release|Teensy_4 1
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{375BDFE8-B4F9-4D90-B733-7FACC88A225E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{375BDFE8-B4F9-4D90-B733-7FACC88A225E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{375BDFE8-B4F9-4D90-B733-7FACC88A225E}.Debug|Teensy_4 1.ActiveCfg = Debug|Any CPU
+		{375BDFE8-B4F9-4D90-B733-7FACC88A225E}.Debug|Teensy_4 1.Build.0 = Debug|Any CPU
+		{375BDFE8-B4F9-4D90-B733-7FACC88A225E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{375BDFE8-B4F9-4D90-B733-7FACC88A225E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{375BDFE8-B4F9-4D90-B733-7FACC88A225E}.Release|Teensy_4 1.ActiveCfg = Release|Any CPU
+		{375BDFE8-B4F9-4D90-B733-7FACC88A225E}.Release|Teensy_4 1.Build.0 = Release|Any CPU
+		{EB70D08A-0782-4EF5-A336-E26D3A695D73}.Debug|Any CPU.ActiveCfg = Debug|Teensy_4 1
+		{EB70D08A-0782-4EF5-A336-E26D3A695D73}.Debug|Any CPU.Build.0 = Debug|Teensy_4 1
+		{EB70D08A-0782-4EF5-A336-E26D3A695D73}.Debug|Teensy_4 1.ActiveCfg = Debug|Teensy_4 1
+		{EB70D08A-0782-4EF5-A336-E26D3A695D73}.Debug|Teensy_4 1.Build.0 = Debug|Teensy_4 1
+		{EB70D08A-0782-4EF5-A336-E26D3A695D73}.Release|Any CPU.ActiveCfg = Release|Teensy_4 1
+		{EB70D08A-0782-4EF5-A336-E26D3A695D73}.Release|Any CPU.Build.0 = Release|Teensy_4 1
+		{EB70D08A-0782-4EF5-A336-E26D3A695D73}.Release|Teensy_4 1.ActiveCfg = Release|Teensy_4 1
+		{EB70D08A-0782-4EF5-A336-E26D3A695D73}.Release|Teensy_4 1.Build.0 = Release|Teensy_4 1
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F8B3434D-D771-46CE-B87B-147EECC527D7}
+	EndGlobalSection
+EndGlobal
