@@ -15,3 +15,7 @@ node_modules
 /firmware/Output/Teensy_4_1/Debug
 /DiscoCartV2/.visualgdb
 /DiscoCartV2/DiscoCartUtil-Setup
+/firmware/.visualgdb/VisualGDBCache/firmware-Debug-Arduino_Mega_or_Mega_2560
+/firmware/Output/Arduino_Mega_or_Mega_2560/Debug
+/firmware/.visualgdb/VisualGDBCache/firmware-Release-Teensy_4_1
+/firmware/Output/Teensy_4_1/Release

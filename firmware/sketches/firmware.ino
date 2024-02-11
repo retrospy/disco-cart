@@ -1,8 +1,13 @@
 
 #include <Arduino.h>
+#if defined(ARDUINO_TEENSY41)
 #include "SdFat.h"
-#include "main.h"
 #include "RingBuf.h"
+#else
+#include <digitalWriteFast.h>
+#endif
+#include "main.h"
+
 
 #define DISCO_CART_V2
 //#define DISCO_CART_V1
@@ -13,11 +18,14 @@
 	#define WRITE_DATA_WAIT_US 10
 #endif
 
+#if defined(ARDUINO_TEENSY41)
 #define SPI_CLOCK SD_SCK_MHZ(50)
 
 const size_t RING_BUF_SIZE = 400 * 512;
+#endif
 
 // v-smile has 22 bits for addressing
+#if defined(ARDUINO_TEENSY41)
 const uint8_t address[ADDRESS_BITS] = {
 	9,
 	// A0
@@ -46,8 +54,39 @@ const uint8_t address[ADDRESS_BITS] = {
 	31,
 	32 // A21
 };
+#else
+const uint8_t address[ADDRESS_BITS] = {
+	16,
+	// A0
+	17,
+	18,
+	19,
+	20,
+	21,
+	// A5
+	22,
+	24,
+	26,
+	28,
+	30,
+	// A10
+	32,
+	34,
+	36,
+	38,
+	40,
+	// A15
+	42,
+	44,
+	46,
+	48,
+	50,
+	52 // A21
+};
+#endif
 
 // v-smile uses 16 bit wide data bus
+#if defined(ARDUINO_TEENSY41)
 const uint8_t data[DATA_BITS] = {
 	3,
 	// DQ0
@@ -69,17 +108,49 @@ const uint8_t data[DATA_BITS] = {
 	41,
 	13 // DQ15
 };
+#else
+const uint8_t data[DATA_BITS] = {
+	0,
+	// DQ0
+	1,
+	2,
+	3,
+	4,
+	5,
+	// DQ5
+	6,
+	7,
+	8,
+	9,
+	10,
+	// DQ10
+	11,
+	12,
+	13,
+	14,
+	15 // DQ15
+};
+#endif
 
+#if defined(ARDUINO_TEENSY41)
 const int chipEnable = 23;
 const int chipSelect = 22;
 const int writeEnable = 21;
 const int outputEnable = 20;
+#else
+const int chipEnable = 27;
+const int chipSelect = 29;
+const int writeEnable = 25;
+const int outputEnable = 23;
+#endif
 
+#if defined(ARDUINO_TEENSY41)
 SdFs sd;
 FsFile file;
 bool sdDetected = false;
 
 RingBuf<FsFile, RING_BUF_SIZE> ringBuf;
+#endif
 
 void setup() {
 	// initialize address bus
@@ -90,10 +161,17 @@ void setup() {
 		digitalWrite(address[i], LOW);
 	}
 
+#if defined(ARDUINO_TEENSY41)
 	// initialize data bus
 	for (int i = 0; i < DATA_BITS; i++) {
-		pinMode(data[i], INPUT_PULLDOWN);
+		pinMode(data[i], INPUT);
 	}
+#else
+	// initialize data bus
+	for (int i = 0; i < DATA_BITS; i++) {
+		pinMode(data[i], INPUT);
+	}
+#endif
 
 	// initialize control bits
 	pinMode(chipEnable, OUTPUT);
@@ -114,7 +192,7 @@ void setup() {
 	Serial.println("Started Serial COM");
 
 	Serial.setTimeout(-1);
-
+#if defined(ARDUINO_TEENSY41)
 	if (!sd.begin(SdioConfig(FIFO_SDIO))) {
 		//Serial.println("Failed to detect sd card");
 		//sd.initErrorHalt(&Serial);
@@ -123,6 +201,8 @@ void setup() {
 	else {
 		sdDetected = true;
 	}
+#endif
+
 }
 
 void setupWrite() {
@@ -194,7 +274,11 @@ word readData(unsigned int addr, int bank) {
 		digitalWriteFast(chipSelect, LOW);
 	}
 
-	delayNanoseconds(70);
+//#if defined(ARDUINO_TEENSY41)
+//	delayNanoseconds(70);
+//#else
+	asm volatile("nop\n"); // ~62.5 nanoseconds
+//#endif
 
 	dataWord = readWord();
 
@@ -212,15 +296,27 @@ void writeWord(uint32_t addr, uint16_t wrd) {
 	setAddress(addr);
 	setData(wrd);
 
-	delayNanoseconds(15);
+//#if defined(ARDUINO_TEENSY41)
+//	delayNanoseconds(15);
+//#else
+	asm volatile("nop\n"); // ~62.5 nanoseconds
+//#endif
 
 	digitalWriteFast(writeEnable, LOW);
 
-	delayNanoseconds(40);
+//#if defined(ARDUINO_TEENSY41)
+//	delayNanoseconds(40);
+//#else
+	asm volatile("nop\n"); // ~62.5 nanoseconds
+//#endif
 
 	digitalWriteFast(writeEnable, HIGH);
 
-	delayNanoseconds(15);
+//#if defined(ARDUINO_TEENSY41)
+//delayNanoseconds(15);
+//#else
+	asm volatile("nop\n"); // ~62.5 nanoseconds
+//#endif
 }
 
 void writeData(uint32_t addr, uint16_t wrd) {
@@ -488,6 +584,7 @@ void readSerialCommand(String command) {
 
 		Serial.print("ACK\n");
 		return;
+#if defined(ARDUINO_TEENSY41)
 	case(DUMP):
 		switchMode(MODE_READ);
 
@@ -545,6 +642,7 @@ void readSerialCommand(String command) {
 
 		setup();
 		return;
+#endif
 	case(ACK):
 	default:
 		Serial.println("Unused");
