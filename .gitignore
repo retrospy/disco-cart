@@ -19,3 +19,6 @@ node_modules
 /firmware/Output/Arduino_Mega_or_Mega_2560/Debug
 /firmware/.visualgdb/VisualGDBCache/firmware-Release-Teensy_4_1
 /firmware/Output/Teensy_4_1/Release
+/firmware/.visualgdb/VisualGDBCache
+/firmware/Output/Generic_RP2040/Debug
+/firmware/Output/Raspberry_Pi_Pico

@@ -4,8 +4,9 @@
     <Dependency>
       <Type>Platform</Type>
       <Key>
-        <Packager>teensy</Packager>
-        <Name>avr</Name>
+        <Packager>rp2040</Packager>
+        <Name>rp2040</Name>
+        <Version>3.8.0</Version>
       </Key>
     </Dependency>
   </Dependencies>

@@ -56,32 +56,16 @@ const uint8_t address[ADDRESS_BITS] = {
 };
 #else
 const uint8_t address[ADDRESS_BITS] = {
-	16,
-	// A0
-	17,
-	18,
-	19,
 	20,
+	// A0
 	21,
-	// A5
 	22,
+	23,
 	24,
+	25,
+	// A5
 	26,
-	28,
-	30,
-	// A10
-	32,
-	34,
-	36,
-	38,
-	40,
-	// A15
-	42,
-	44,
-	46,
-	48,
-	50,
-	52 // A21
+	27
 };
 #endif
 
@@ -138,10 +122,12 @@ const int chipSelect = 22;
 const int writeEnable = 21;
 const int outputEnable = 20;
 #else
-const int chipEnable = 27;
-const int chipSelect = 29;
-const int writeEnable = 25;
-const int outputEnable = 23;
+const int chipEnable = 18;
+const int chipSelect = 19;
+const int writeEnable = 17;
+const int outputEnable = 16;
+const int latchEnable1 = 28;
+const int latchEnable2 = 29;
 #endif
 
 #if defined(ARDUINO_TEENSY41)
@@ -154,24 +140,34 @@ RingBuf<FsFile, RING_BUF_SIZE> ringBuf;
 
 void setup() {
 	// initialize address bus
+#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < ADDRESS_BITS; i++) {
 		pinMode(address[i], OUTPUT);
 
 		// init low
 		digitalWrite(address[i], LOW);
 	}
-
-#if defined(ARDUINO_TEENSY41)
-	// initialize data bus
-	for (int i = 0; i < DATA_BITS; i++) {
-		pinMode(data[i], INPUT);
-	}
 #else
+	pinMode(latchEnable1, OUTPUT);
+	digitalWriteFast(latchEnable1, LOW);
+	
+	pinMode(latchEnable2, OUTPUT);
+	digitalWriteFast(latchEnable2, LOW);
+
+	digitalWriteFast(latchEnable2, HIGH);
+	digitalWriteFast(latchEnable1, HIGH);
+	for (int i = 0; i < ADDRESS_BITS; i++) {
+		pinMode(address[i], OUTPUT);
+		digitalWriteFast(address[i], LOW);
+	}
+	digitalWriteFast(latchEnable2, LOW);
+	digitalWriteFast(latchEnable1, LOW);
+#endif	
+
 	// initialize data bus
 	for (int i = 0; i < DATA_BITS; i++) {
 		pinMode(data[i], INPUT);
 	}
-#endif
 
 	// initialize control bits
 	pinMode(chipEnable, OUTPUT);
@@ -188,6 +184,9 @@ void setup() {
 
 	// initialize serial interface
 	Serial.begin(4608000);
+#if !defined(ARDUINO_TEENSY41)
+	Serial.ignoreFlowControl();
+#endif
 	delay(2);
 	Serial.println("Started Serial COM");
 
@@ -207,12 +206,29 @@ void setup() {
 
 void setupWrite() {
 	// initialize address bus
+#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < ADDRESS_BITS; i++) {
 		pinMode(address[i], OUTPUT);
 
 		// init low
 		digitalWrite(address[i], LOW);
 	}
+#else
+	pinMode(latchEnable1, OUTPUT);
+	digitalWriteFast(latchEnable1, LOW);
+	
+	pinMode(latchEnable2, OUTPUT);
+	digitalWriteFast(latchEnable2, LOW);
+
+	digitalWriteFast(latchEnable2, HIGH);
+	digitalWriteFast(latchEnable1, HIGH);
+	for (int i = 0; i < ADDRESS_BITS; i++) {
+		pinMode(address[i], OUTPUT);
+		digitalWriteFast(address[i], LOW);
+	}
+	digitalWriteFast(latchEnable2, LOW);
+	digitalWriteFast(latchEnable1, LOW);
+#endif	
 
 	// initialize data bus
 	for (int i = 0; i < DATA_BITS; i++) {
@@ -236,9 +252,31 @@ void setupWrite() {
 
 
 void setAddress(unsigned int addr) {
+
+#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < ADDRESS_BITS; i++) {
 		digitalWriteFast(address[i], bitRead(addr, i));
 	}
+#else
+	digitalWriteFast(latchEnable2, HIGH);
+	for (int i = 16; i < 22; ++i)
+	{
+		digitalWriteFast(address[i-16], bitRead(addr, i));
+	}
+	digitalWriteFast(latchEnable2, LOW);
+	
+	digitalWriteFast(latchEnable1, HIGH);
+	for (int i = 8; i < 16; ++i)
+	{
+		digitalWriteFast(address[i - 8], bitRead(addr, i));
+	}
+	digitalWriteFast(latchEnable1, LOW);
+	
+	for (int i = 0; i < 8; ++i)
+	{
+		digitalWriteFast(address[i], bitRead(addr, i));
+	}
+#endif
 }
 
 void setData(uint16_t wrd) {
@@ -274,11 +312,11 @@ word readData(unsigned int addr, int bank) {
 		digitalWriteFast(chipSelect, LOW);
 	}
 
-//#if defined(ARDUINO_TEENSY41)
-//	delayNanoseconds(70);
-//#else
-	asm volatile("nop\n"); // ~62.5 nanoseconds
-//#endif
+#if defined(ARDUINO_TEENSY41)
+	delayNanoseconds(70);
+#else
+	asm volatile("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"); // ~72 nanoseconds
+#endif
 
 	dataWord = readWord();
 
@@ -296,27 +334,27 @@ void writeWord(uint32_t addr, uint16_t wrd) {
 	setAddress(addr);
 	setData(wrd);
 
-//#if defined(ARDUINO_TEENSY41)
-//	delayNanoseconds(15);
-//#else
-	asm volatile("nop\n"); // ~62.5 nanoseconds
-//#endif
+#if defined(ARDUINO_TEENSY41)
+	delayNanoseconds(15);
+#else
+	asm volatile("nop\nnop\nnop\nnop\n"); // ~16 nanoseconds
+#endif
 
 	digitalWriteFast(writeEnable, LOW);
 
-//#if defined(ARDUINO_TEENSY41)
-//	delayNanoseconds(40);
-//#else
-	asm volatile("nop\n"); // ~62.5 nanoseconds
-//#endif
+#if defined(ARDUINO_TEENSY41)
+	delayNanoseconds(40);
+#else
+	asm volatile("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"); // ~40 nanoseconds
+#endif
 
 	digitalWriteFast(writeEnable, HIGH);
 
-//#if defined(ARDUINO_TEENSY41)
-//delayNanoseconds(15);
-//#else
-	asm volatile("nop\n"); // ~62.5 nanoseconds
-//#endif
+#if defined(ARDUINO_TEENSY41)
+	delayNanoseconds(15);
+#else
+	asm volatile("nop\nnop\nnop\nnop\n"); // ~15 nanoseconds
+#endif
 }
 
 void writeData(uint32_t addr, uint16_t wrd) {
@@ -522,7 +560,7 @@ void readSerialCommand(String command) {
 	uint16_t wrd = 0;
 	size_t maxUsed = 0;
 	char fileName[FILE_NAME_LIMIT] = "";
-
+	
 	switch (stringToCommand(command, address, wrd, fileName)) {
 	case(BANK_LOW):
 		bank = LOW;

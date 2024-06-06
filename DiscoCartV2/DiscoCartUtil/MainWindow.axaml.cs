@@ -241,7 +241,7 @@ namespace DiscoCartUtil
                 
                 port = new(ComPortComboSelectedValue, 4608000);
                 port.Open();
-
+                
                 while (port.BytesToRead > 0)
                 {
                     _ = port.ReadChar();
@@ -262,7 +262,7 @@ namespace DiscoCartUtil
                     int cmdSent = 0;
                     do
                     {
-                        cmd += string.Format("R${0:x}%", index);
+                        cmd += string.Format("R{0:x}%", index);
                         cmdSent++;
                         if (index % 0xFFF == 0)
                         {

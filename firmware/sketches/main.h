@@ -3,7 +3,11 @@
 
 #define FILE_NAME_LIMIT 20
 
-const int ADDRESS_BITS = 22; // V-smile has 22-bit addressing width
+#if defined(RASPBERRYPI_PICO) || defined(ARDUINO_RASPBERRY_PI_PICO)
+	const int ADDRESS_BITS = 8;
+#else
+	const int ADDRESS_BITS = 22; // V-smile has 22-bit addressing width
+#endif
 const int DATA_BITS = 16; // 16 bit data bus
 
 /**
@@ -27,6 +31,7 @@ enum COMMAND {
 	BANK_HIGH,
 	ACK,
 	DUMP,
+	STREAM,
 	UNKNOWN
 };
 
