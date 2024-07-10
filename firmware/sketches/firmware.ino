@@ -259,39 +259,39 @@ void setAddress(unsigned int addr) {
 	}
 #else
 	digitalWriteFast(latchEnable2, HIGH);
-	for (int i = 16; i < 22; ++i)
-	{
-		digitalWriteFast(address[i-16], bitRead(addr, i));
-	}
+	gpio_put_masked(0xFF << 20, addr << 4);
 	digitalWriteFast(latchEnable2, LOW);
 	
 	digitalWriteFast(latchEnable1, HIGH);
-	for (int i = 8; i < 16; ++i)
-	{
-		digitalWriteFast(address[i - 8], bitRead(addr, i));
-	}
+	gpio_put_masked(0xFF << 20, addr << 12);
 	digitalWriteFast(latchEnable1, LOW);
 	
-	for (int i = 0; i < 8; ++i)
-	{
-		digitalWriteFast(address[i], bitRead(addr, i));
-	}
+	gpio_put_masked(0xFF << 20, addr << 20);
+	
 #endif
 }
 
 void setData(uint16_t wrd) {
+	
+#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < DATA_BITS; i++) {
 		digitalWriteFast(data[i], bitRead(wrd, i));
 	}
+#else
+	gpio_put_masked(0xFFFF, wrd);
+#endif
+	
 }
 
 word readWord() {
 	word dataWord = 0;
-
+#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < DATA_BITS; i++) {
 		bitWrite(dataWord, i, digitalReadFast(data[i]));
 	}
-
+#else
+	dataWord = gpio_get_all() & 0xFFFF;
+#endif
 	return dataWord;
 }
 
@@ -375,9 +375,9 @@ void eraseData() {
 #if defined(DISCO_CART_V1)
 	writeWord(0x555, 0x10);
 #elif defined(DISCO_CART_V2)
-	for (int i = 0; i < 40; ++i) // 128k blocks, 40 per 8MB
+	for (int i = 0; i < 40; ++i) // 64KW blocks, 40 per 8MB
 	{
-		writeWord(i * 0x20000, 0x30);
+		writeWord(i * 0x10000, 0x30);
 	}
 	
 	delay(10000);
@@ -435,23 +435,29 @@ uint8_t hexDecimalToBin(char decimal) {
 }
 
 COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t &wrd, char fileName[]) {
-	if (commandString == String("BLOW")) {
+	if (commandString == String("BLOW"))
+	{
 		return BANK_LOW;
 	}
-	else if (commandString == String("BHI")) {
+	else if (commandString == String("BHI"))
+	{
 		return BANK_HIGH;
 	}
-	else if (commandString == String("ACK")) {
+	else if (commandString == String("ACK"))
+	{
 		return ACK;
 	}
-	else if (commandString == String("ERS")) {
+	else if (commandString == String("ERS"))
+	{
 		return ERASE;
 	}
-	else if (commandString.startsWith(String('R'))) {
+	else if (commandString.startsWith(String('R')))
+	{
 		String addressString = commandString.substring(1);
 
 		address = 0;
-		for (uint32_t i = 0; i < addressString.length(); i++) {
+		for (uint32_t i = 0; i < addressString.length(); i++)
+		{
 			uint8_t hexDecimal = hexDecimalToBin(addressString.charAt(i));
 
 			uint8_t offset = (addressString.length() - 1 - i) * 4;
@@ -461,6 +467,22 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 
 		address = address & 0x3FFFFF;
 		return READ;
+	}
+	else if (commandString.startsWith(String("S")))
+	{
+
+		String limitString = commandString.substring(1);
+		address = 0;
+		for (uint32_t i = 0; i < limitString.length(); i++)
+		{
+			uint8_t hexDecimal = hexDecimalToBin(limitString.charAt(i));
+
+			uint8_t offset = (limitString.length() - 1 - i) * 4;
+
+			address = address + ((hexDecimal & 0xF) << offset);
+		}
+		
+		return RSTREAM;
 	}
 	else if (commandString.startsWith(String('W'))) {
 		String addressString = commandString.substring(1);
@@ -492,6 +514,22 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 		}
 
 		return WRITE;
+	}
+	else if (commandString.startsWith(String("X")))
+	{
+
+		String limitString = commandString.substring(1);
+		address = 0;
+		for (uint32_t i = 0; i < limitString.length(); i++)
+		{
+			uint8_t hexDecimal = hexDecimalToBin(limitString.charAt(i));
+
+			uint8_t offset = (limitString.length() - 1 - i) * 4;
+
+			address = address + ((hexDecimal & 0xF) << offset);
+		}
+		
+		return WSTREAM;
 	}
 	else if (commandString.startsWith(String('D'))) {
 		String dumpString = commandString.substring(1);
@@ -549,7 +587,7 @@ typedef struct {
 	uint32_t freq;
 } differences;
 
-uint32_t retryCount = 35;
+uint32_t retryCount = 1;
 uint16_t result[35];
 differences diffs[35];
 uint32_t difCnt;
@@ -611,7 +649,6 @@ void readSerialCommand(String command) {
 				largestFreq = diffs[i].freq;
 			}
 		}
-
 		printHex(result[0], 4);
 		Serial.print("\n");
 		return;
@@ -622,6 +659,65 @@ void readSerialCommand(String command) {
 
 		Serial.print("ACK\n");
 		return;
+//	case(RSTREAM):
+//		switchMode(MODE_READ);
+//		Serial.println("STREAM");
+//		
+//		for (int j = address; j < address + 65536; ++j)
+//		{
+//			switchMode(MODE_READ);
+//			
+//			for (uint32_t i = 0; i < retryCount; i++) {
+//				delayMicroseconds(1);
+//				result[i] = readData(j, bank);
+//			}
+//
+//			difCnt = 1;
+//			largestFreq = 0;
+//			diffs[0] = { result[0], 1 };
+//
+//			for (uint32_t i = 0; i < retryCount; i++) {
+//				bool matchFound = false;
+//				for (uint32_t j = 0; j < difCnt; j++) {
+//					if (diffs[j].wrd == result[i]) {
+//						if (diffs[j].wrd != 0x0000) {
+//							diffs[j] = { result[i], diffs[j].freq + 1 };
+//						}
+//						matchFound = true;
+//						break;
+//					}
+//				}
+//
+//				if (!matchFound) {
+//					diffs[difCnt] = { result[i], 1 };
+//					difCnt++;
+//				}
+//			}
+//
+//			for (uint32_t i = 0; i < difCnt; i++) {
+//				if (diffs[i].freq > largestFreq) {
+//					result[0] = diffs[i].wrd;
+//					largestFreq = diffs[i].freq;
+//				}
+//			}
+//			
+//			Serial.write((byte)result[0]);
+//			Serial.write((byte)(result[0] >> 8));
+//		}
+//		return;
+//	case(WSTREAM):
+//		switchMode(MODE_READ);
+//		Serial.println("STREAM");
+//		
+//		for (int i = address; i < address + 65536; ++i)
+//		{
+//			switchMode(MODE_WRITE);
+//			
+//			while (Serial.peek() < 2) { }
+//			word w = Serial.read() << 8 | Serial.read();
+//			writeData(i, w);
+//		}
+//		return;
 #if defined(ARDUINO_TEENSY41)
 	case(DUMP):
 		switchMode(MODE_READ);

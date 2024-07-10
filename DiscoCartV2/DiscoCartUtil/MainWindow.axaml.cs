@@ -238,13 +238,15 @@ namespace DiscoCartUtil
             {
                 DateTime startTime = DateTime.Now;
                 buffer = new(File.Open(FilenameTextText ?? string.Empty, FileMode.OpenOrCreate));
-                
+                byte[] temp_buffer = new byte[1000000];
+
                 port = new(ComPortComboSelectedValue, 4608000);
+
                 port.Open();
                 
                 while (port.BytesToRead > 0)
                 {
-                    _ = port.ReadChar();
+                    port.Read(temp_buffer, 0, 1000000);
                 }
 
                 if (BankCombo.SelectedIndex == 0)
@@ -254,45 +256,92 @@ namespace DiscoCartUtil
 
                 int index = 0;
                 string cmd = string.Empty;
-                do
-                {
-                    if (isClosing)
-                        return;
 
-                    int cmdSent = 0;
+                //port.Write(string.Format("S{0:x}%", 0));
+
+                //while (port.BytesToRead < 8) { }
+
+                //port.Read(temp_buffer, 0, 8);
+
+                //if (temp_buffer[0] == 'S') // Stream Capable
+                //{
+                //    for (int i = 0; i < ((Limit+1) / 0x10000); ++i)
+                //    {
+                //        int bytesReceived = 0;
+                //        if (i != 0)
+                //        {
+                //            port.Write(string.Format("S{0:x}%", 0x10000 * i));
+
+                //            while (port.BytesToRead < 8) { }
+
+                //            port.Read(temp_buffer, 0, 8);
+                //        }
+
+                //        do
+                //        {
+                //            if (isClosing)
+                //                return;
+
+                //            if (index % 0xFFF == 0)
+                //            {
+                //                Dispatcher.UIThread.Post(() =>
+                //                {
+                //                    progressBar.Value = (int)Math.Round((float)index / ((Limit * 2) + 1) * 100.0f);
+                //                });
+                //            }
+
+                //            if (port.BytesToRead > 0)
+                //            {
+                //                int size = port.Read(temp_buffer, 0, 1000000);
+                //                buffer.Write(temp_buffer, 0, size);
+                //                index += size;
+                //                bytesReceived += size;
+                //            }
+                //        } while (bytesReceived < 0x20000);
+                //    }
+                //}
+                //else // Fallback to the RX% mode
+                {
                     do
                     {
-                        cmd += string.Format("R{0:x}%", index);
-                        cmdSent++;
-                        if (index % 0xFFF == 0)
+                        if (isClosing)
+                            return;
+
+                        int cmdSent = 0;
+                        do
                         {
-                            Dispatcher.UIThread.Post(() =>
+                            cmd += string.Format("R{0:x}%", index);
+                            cmdSent++;
+                            if (index % 0xFFF == 0)
                             {
-                                progressBar.Value = (int)Math.Round((float)index / Limit * 100.0f);
-                            });
+                                Dispatcher.UIThread.Post(() =>
+                                {
+                                    progressBar.Value = (int)Math.Round((float)index / Limit * 100.0f);
+                                });
+                            }
+                            if (index == Limit)
+                                break;
+
+                            index++;
+                        } while (index % 100 != 0);
+
+                        port.Write(cmd);
+                        cmd = string.Empty;
+
+                        while (cmdSent != 0)
+                        {
+                            while (port.BytesToRead < 5) { }
+
+                            char[] num = new char[5];
+                            port.Read(num, 0, 5);
+                            --cmdSent;
+                            string s = new(num);
+
+                            buffer.Write(Convert.ToUInt16(s.Trim(), 16));
                         }
-                        if (index == Limit)
-                            break;
-                        
-                        index++;
-                    } while (index % 100 != 0);
 
-                    port.Write(cmd);
-                    cmd  = string.Empty;
-
-                    while (cmdSent != 0)
-                    {
-                        while (port.BytesToRead < 5) { }
-
-                        char[] num = new char[5];
-                        port.Read(num, 0, 5);
-                        --cmdSent;
-                        string s = new(num);
-
-                        buffer.Write(Convert.ToUInt16(s.Trim(), 16));
-                    }
-
-                } while (index != Limit);
+                    } while (index < Limit);
+                }
 
                 Dispatcher.UIThread.Post(() =>
                 {
@@ -387,6 +436,9 @@ namespace DiscoCartUtil
                 byte[] bytes = File.ReadAllBytes(FilenameTextText ?? string.Empty);
                 rom = new(File.Open(FilenameTextText ?? string.Empty, FileMode.Open));
 
+                char[] temp_buffer = new char[1000000];
+
+
                 if (BankCombo.SelectedIndex == 0)
                     port.Write("BLOW%");
                 else
@@ -394,30 +446,89 @@ namespace DiscoCartUtil
 
                 port.Write("ERS%");
 
-                int index = 0;
-                string cmd = string.Empty;
-                while (rom.BaseStream.Position != rom.BaseStream.Length)
+                //port.Write(string.Format("X{0:x}%", 0));
+
+                //while (port.BytesToRead < 8) { }
+
+                //while (port.BytesToRead > 0)
+                //{
+                //    port.Read(temp_buffer, 0, 1000000);
+                //}
+                //if (new string(temp_buffer).Contains("STREAM"))// Stream Capable
+                //{
+                //    int index = 0;
+                //    byte[] temp_data = new byte[0x20000];
+
+                //    for (int i = 0; i < ((Limit + 1) / 0x10000); ++i)
+                //    {
+                //        int bytesWritten = 0;
+                //        int bytesToSend = 0;
+
+                //        if (i != 0)
+                //        {
+                //            port.Write(string.Format("X{0:x}%", 0x10000 * i));
+
+                //            while (port.BytesToRead < 8) { }
+
+                //            port.Read(temp_buffer, 0, 8);
+                //        }
+
+                //        while (bytesWritten < 0x20000)
+                //        {
+                //            if (isClosing)
+                //                return;
+
+                //            if (index % 0xFFFF == 0)
+                //            {
+                //                Dispatcher.UIThread.Post(() =>
+                //                {
+                //                    progressBar.Value = Math.Round(index / (bytes.Length / 2.0f) * 100.0f);
+                //                });
+                //            }
+
+                //            temp_data[bytesToSend++] = rom.ReadByte();
+                //            temp_data[bytesToSend++] = rom.ReadByte();
+                //            index += 2;
+                //            bytesWritten += 2;
+                            
+                //            if (bytesWritten % 100  == 0)
+                //            {
+                //                port.Write(temp_data, 0, bytesToSend);
+                //                bytesToSend = 0;
+                //            }
+                //        }
+                //        port.Write(temp_data, 0, bytesToSend);
+                //    }
+                //}
+                //else
                 {
-                    if (isClosing)
-                        return;
 
-                    if (index % 0xFFFF == 0)
+                    int index = 0;
+                    string cmd = string.Empty;
+                    while (rom.BaseStream.Position != rom.BaseStream.Length)
                     {
-                        Dispatcher.UIThread.Post(() =>
+                        if (isClosing)
+                            return;
+
+                        if (index % 0xFFFF == 0)
                         {
-                            progressBar.Value = Math.Round(index / (bytes.Length / 2.0f) * 100.0f);
-                        });
-                    }
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                progressBar.Value = Math.Round(index / (bytes.Length / 2.0f) * 100.0f);
+                            });
+                        }
 
-                    if (index % 100 == 0)
-                    {
-                        port.Write(cmd);
-                        cmd = string.Empty;
+                        if (index % 100 == 0)
+                        {
+                            port.Write(cmd);
+                            cmd = string.Empty;
+                        }
+                        cmd += string.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
+                        index++;
                     }
-                    cmd  += string.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
-                    index++;
+                    port.Write(cmd);
                 }
-                port.Write(cmd);
+
                 Dispatcher.UIThread.Post(() =>
                 {
                     AvaloniaMessageBox("Disco-Cart Utility", string.Format("Uploaded completed in {0} seconds.", (DateTime.Now - startTime).TotalSeconds), ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info);
@@ -465,6 +576,18 @@ namespace DiscoCartUtil
 
         private void Upload_Click(object sender, RoutedEventArgs e)
         {
+            switch (LimitCombo.SelectedIndex)
+            {
+                case 0:
+                    Limit = 0xFFFFF;
+                    break;
+                case 1:
+                    Limit = 0x1FFFFF;
+                    break;
+                case 2:
+                    Limit = 0x3FFFFF;
+                    break;
+            }
             ComPortCombo.IsEnabled = false;
             BankCombo.IsEnabled = false;
             LimitCombo.IsEnabled = false;

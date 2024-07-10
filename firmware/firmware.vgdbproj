@@ -274,7 +274,7 @@
       </DebugSettingsOverride>
       <BuildSettingsExtension xsi:type="com.visualgdb.build.external.arduino.extension">
         <BoardID>rp2040:rp2040:rpipico</BoardID>
-        <COMPort />
+        <COMPort>COM7</COMPort>
         <Properties>
           <Entries>
             <KeyValue>
@@ -323,7 +323,7 @@
             </KeyValue>
           </Entries>
         </Properties>
-        <DebugUnoptimizedComponentTypes>Sketch</DebugUnoptimizedComponentTypes>
+        <DebugUnoptimizedComponentTypes>None</DebugUnoptimizedComponentTypes>
       </BuildSettingsExtension>
     </VisualGDBConfiguration>
   </Configurations>
