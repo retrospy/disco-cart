@@ -6,16 +6,16 @@ if [ -n "$1" ]; then
   export sub=1
 fi
 
-rm -rf bin/Release/net7.0
+rm -rf bin/Release/net8.0
 rm -rf bin/Release/DiscoCartUtil-Linux
 rm -rf DiscoCartUtil-Linux.tar.gz
 
-dotnet publish DiscoCartUtil/DiscoCartUtil.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:OutputPath=../bin/Release/net7.0/ -r linux-x64 --self-contained
+dotnet publish DiscoCartUtil/DiscoCartUtil.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:OutputPath=../bin/Release/net8.0/ -r linux-x64 --self-contained
 
 cd bin/Release
 mkdir DiscoCartUtil-Linux
 mkdir DiscoCartUtil-Linux/bin
-cp -r net7.0/publish/* DiscoCartUtil-Linux/bin
+cp -r net8.0/publish/* DiscoCartUtil-Linux/bin
 
 cp ../../../LICENSE DiscoCartUtil-Linux
 mv DiscoCartUtil-Linux/bin/DiscoCartUtil DiscoCartUtil-Linux/bin/discocartutil

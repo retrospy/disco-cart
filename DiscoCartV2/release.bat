@@ -4,8 +4,8 @@ IF "%~1"=="" GOTO release
 IF NOT "%~1"=="" set sub=1
 
 :release
-rmdir /S /Q bin\Release\net7.0
-"C:\Program Files\dotnet\dotnet.exe" build DiscoCartUtil\DiscoCartUtil.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:OutputPath=..\bin\Release\net7.0
+rmdir /S /Q bin\Release\net8.0
+"C:\Program Files\dotnet\dotnet.exe" build DiscoCartUtil\DiscoCartUtil.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:OutputPath=..\bin\Release\net8.0
 if %ERRORLEVEL% NEQ 0 goto :fail
 
 del DiscoCartUtil-Windows.zip
@@ -21,7 +21,7 @@ if exist "..\..\..\..\certs\codesignpasswd.txt" (
     set /p codesignpasswd=<"..\..\..\..\certs\codesignpasswd.txt"
 )
 
-cd "bin\Release\net7.0\"
+cd "bin\Release\net8.0\"
 if %ERRORLEVEL% NEQ 0 goto :fail
 
 if exist "..\..\..\..\..\..\..\certs\codesign.cer" (
