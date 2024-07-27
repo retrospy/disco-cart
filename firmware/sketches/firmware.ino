@@ -138,7 +138,8 @@ bool sdDetected = false;
 RingBuf<FsFile, RING_BUF_SIZE> ringBuf;
 #endif
 
-void setup() {
+void setupRead()
+{
 	// initialize address bus
 #if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < ADDRESS_BITS; i++) {
@@ -181,7 +182,12 @@ void setup() {
 
 	pinMode(outputEnable, OUTPUT);
 	digitalWrite(outputEnable, LOW);
+}
 
+void setup() {
+
+	setupRead();
+	
 	// initialize serial interface
 	Serial.begin(4608000);
 #if !defined(ARDUINO_TEENSY41)
@@ -259,39 +265,50 @@ void setAddress(unsigned int addr) {
 	}
 #else
 	digitalWriteFast(latchEnable2, HIGH);
-	gpio_put_masked(0xFF << 20, addr << 4);
+	//gpio_put_masked(0xFF << 20, addr << 4);
+	for (int i = 16; i < 22; i++) {
+		digitalWriteFast(address[i - 16], bitRead(addr, i));
+	}
 	digitalWriteFast(latchEnable2, LOW);
 	
 	digitalWriteFast(latchEnable1, HIGH);
-	gpio_put_masked(0xFF << 20, addr << 12);
+	//gpio_put_masked(0xFF << 20, addr << 12);
+	for (int i = 8; i < 16; i++) {
+		digitalWriteFast(address[i - 8], bitRead(addr, i));
+	}
 	digitalWriteFast(latchEnable1, LOW);
 	
-	gpio_put_masked(0xFF << 20, addr << 20);
 	
+	//gpio_put_masked(0xFF << 20, addr << 20);
+	for (int i = 0; i < 8; i++) {
+		digitalWriteFast(address[i], bitRead(addr, i));
+	}
+
 #endif
+
 }
 
 void setData(uint16_t wrd) {
 	
-#if defined(ARDUINO_TEENSY41)
+//#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < DATA_BITS; i++) {
 		digitalWriteFast(data[i], bitRead(wrd, i));
 	}
-#else
-	gpio_put_masked(0xFFFF, wrd);
-#endif
+//#else
+//	gpio_put_masked(0xFFFF, wrd);
+//#endif
 	
 }
 
 word readWord() {
 	word dataWord = 0;
-#if defined(ARDUINO_TEENSY41)
+//#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < DATA_BITS; i++) {
 		bitWrite(dataWord, i, digitalReadFast(data[i]));
 	}
-#else
-	dataWord = gpio_get_all() & 0xFFFF;
-#endif
+//#else
+//	dataWord = gpio_get_all() & 0xFFFF;
+//#endif
 	return dataWord;
 }
 
@@ -375,7 +392,7 @@ void eraseData() {
 #if defined(DISCO_CART_V1)
 	writeWord(0x555, 0x10);
 #elif defined(DISCO_CART_V2)
-	for (int i = 0; i < 40; ++i) // 64KW blocks, 40 per 8MB
+	for (int i = 0; i < 0x40; ++i) // 64KW blocks, 64 per 8MB
 	{
 		writeWord(i * 0x10000, 0x30);
 	}
@@ -468,32 +485,21 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 		address = address & 0x3FFFFF;
 		return READ;
 	}
-	else if (commandString.startsWith(String("S")))
-	{
-
-		String limitString = commandString.substring(1);
-		address = 0;
-		for (uint32_t i = 0; i < limitString.length(); i++)
-		{
-			uint8_t hexDecimal = hexDecimalToBin(limitString.charAt(i));
-
-			uint8_t offset = (limitString.length() - 1 - i) * 4;
-
-			address = address + ((hexDecimal & 0xF) << offset);
-		}
-		
-		return RSTREAM;
-	}
 	else if (commandString.startsWith(String('W'))) {
 		String addressString = commandString.substring(1);
 
 		address = 0;
 		uint32_t splitPoint = 0;
 		uint8_t decimals[7] = { 0, 0, 0, 0, 0, 0, 0 };
-		for (; addressString.charAt(splitPoint) != ':'; splitPoint++) {
+		for (; addressString.charAt(splitPoint) != ':' && splitPoint < addressString.length()  && splitPoint < 7; splitPoint++) {
 			decimals[splitPoint] = hexDecimalToBin(addressString.charAt(splitPoint));
 		}
 
+		if (splitPoint >= addressString.length() || splitPoint >= 7)
+		{
+			return UNKNOWN;
+		}
+		
 		for (uint32_t j = 0; j < splitPoint; j++) {
 			uint8_t offset = (splitPoint - 1 - j) * 4;
 
@@ -514,22 +520,6 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 		}
 
 		return WRITE;
-	}
-	else if (commandString.startsWith(String("X")))
-	{
-
-		String limitString = commandString.substring(1);
-		address = 0;
-		for (uint32_t i = 0; i < limitString.length(); i++)
-		{
-			uint8_t hexDecimal = hexDecimalToBin(limitString.charAt(i));
-
-			uint8_t offset = (limitString.length() - 1 - i) * 4;
-
-			address = address + ((hexDecimal & 0xF) << offset);
-		}
-		
-		return WSTREAM;
 	}
 	else if (commandString.startsWith(String('D'))) {
 		String dumpString = commandString.substring(1);
@@ -574,7 +564,7 @@ void switchMode(MODE mode) {
 	}
 	else {
 		if (currentMode != MODE_READ) {
-			setup();
+			setupRead();
 			currentMode = MODE_READ;
 
 			delayMicroseconds(10);
@@ -611,7 +601,7 @@ void readSerialCommand(String command) {
 
 		eraseData();
 
-		Serial.print("ACK\n");
+		Serial.println("ACK");
 		return;
 	case(READ):
 		switchMode(MODE_READ);
@@ -650,74 +640,15 @@ void readSerialCommand(String command) {
 			}
 		}
 		printHex(result[0], 4);
-		Serial.print("\n");
+		Serial.println();
 		return;
 	case(WRITE):
 		switchMode(MODE_WRITE);
 
 		writeData(address, wrd);
 
-		Serial.print("ACK\n");
+		Serial.println("ACK");
 		return;
-//	case(RSTREAM):
-//		switchMode(MODE_READ);
-//		Serial.println("STREAM");
-//		
-//		for (int j = address; j < address + 65536; ++j)
-//		{
-//			switchMode(MODE_READ);
-//			
-//			for (uint32_t i = 0; i < retryCount; i++) {
-//				delayMicroseconds(1);
-//				result[i] = readData(j, bank);
-//			}
-//
-//			difCnt = 1;
-//			largestFreq = 0;
-//			diffs[0] = { result[0], 1 };
-//
-//			for (uint32_t i = 0; i < retryCount; i++) {
-//				bool matchFound = false;
-//				for (uint32_t j = 0; j < difCnt; j++) {
-//					if (diffs[j].wrd == result[i]) {
-//						if (diffs[j].wrd != 0x0000) {
-//							diffs[j] = { result[i], diffs[j].freq + 1 };
-//						}
-//						matchFound = true;
-//						break;
-//					}
-//				}
-//
-//				if (!matchFound) {
-//					diffs[difCnt] = { result[i], 1 };
-//					difCnt++;
-//				}
-//			}
-//
-//			for (uint32_t i = 0; i < difCnt; i++) {
-//				if (diffs[i].freq > largestFreq) {
-//					result[0] = diffs[i].wrd;
-//					largestFreq = diffs[i].freq;
-//				}
-//			}
-//			
-//			Serial.write((byte)result[0]);
-//			Serial.write((byte)(result[0] >> 8));
-//		}
-//		return;
-//	case(WSTREAM):
-//		switchMode(MODE_READ);
-//		Serial.println("STREAM");
-//		
-//		for (int i = address; i < address + 65536; ++i)
-//		{
-//			switchMode(MODE_WRITE);
-//			
-//			while (Serial.peek() < 2) { }
-//			word w = Serial.read() << 8 | Serial.read();
-//			writeData(i, w);
-//		}
-//		return;
 #if defined(ARDUINO_TEENSY41)
 	case(DUMP):
 		switchMode(MODE_READ);
@@ -748,7 +679,7 @@ void readSerialCommand(String command) {
 			if (i % 0xFFFF == 0) {
 				Serial.print("Dumping... ");
 				Serial.print((i * 100) / address);
-				Serial.print("%\n");
+				Serial.println("%");
 			}
 
 			size_t n = ringBuf.bytesUsed();
