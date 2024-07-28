@@ -9,8 +9,13 @@
 #include "main.h"
 
 
-#define DISCO_CART_V2
+
+#if defined(ARDUINO_TEENSY41)
 //#define DISCO_CART_V1
+#define DISCO_CART_V2
+#else
+#define DISCO_CART_V2
+#endif 
 
 #if defined(DISCO_CART_V2)
 	#define WRITE_DATA_WAIT_US 20
@@ -190,10 +195,8 @@ void setup() {
 	
 	// initialize serial interface
 	Serial.begin(4608000);
-#if !defined(ARDUINO_TEENSY41)
-	Serial.ignoreFlowControl();
-#endif
-	delay(2);
+
+	while (!Serial) ;
 	Serial.println("Started Serial COM");
 
 	Serial.setTimeout(-1);
@@ -545,6 +548,41 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 
 		return DUMP;
 	}
+	else if (commandString.startsWith(String('X')))
+	{
+		String addressString = commandString.substring(1);
+
+		address = 0;
+		for (uint32_t i = 0; i < addressString.length(); i++)
+		{
+			uint8_t hexDecimal = hexDecimalToBin(addressString.charAt(i));
+
+			uint8_t offset = (addressString.length() - 1 - i) * 4;
+
+			address = address + ((hexDecimal & 0xF) << offset);
+		}
+
+		address = address & 0x3FFFFF;
+		return WSTREAM;
+	}
+	else if (commandString.startsWith(String('S')))
+	{
+		String addressString = commandString.substring(1);
+
+		address = 0;
+		for (uint32_t i = 0; i < addressString.length(); i++)
+		{
+			uint8_t hexDecimal = hexDecimalToBin(addressString.charAt(i));
+
+			uint8_t offset = (addressString.length() - 1 - i) * 4;
+
+			address = address + ((hexDecimal & 0xF) << offset);
+		}
+
+		address = address & 0x3FFFFF;
+	
+		return RSTREAM;
+	}
 	else {
 		return UNKNOWN;
 	}
@@ -577,7 +615,7 @@ typedef struct {
 	uint32_t freq;
 } differences;
 
-uint32_t retryCount = 1;
+uint32_t retryCount = 35;
 uint16_t result[35];
 differences diffs[35];
 uint32_t difCnt;
@@ -587,6 +625,8 @@ void readSerialCommand(String command) {
 	uint32_t address = 0;
 	uint16_t wrd = 0;
 	size_t maxUsed = 0;
+	int index;
+	int limit;
 	char fileName[FILE_NAME_LIMIT] = "";
 	
 	switch (stringToCommand(command, address, wrd, fileName)) {
@@ -642,12 +682,74 @@ void readSerialCommand(String command) {
 		printHex(result[0], 4);
 		Serial.println();
 		return;
+	case(RSTREAM):
+		switchMode(MODE_READ);
+		
+		index = 0;
+		limit = address;
+		
+		while (index < limit + 1)
+		{
+			for (uint32_t i = 0; i < retryCount; i++) {
+				delayMicroseconds(1);
+				result[i] = readData(index, bank);
+			}
+
+			difCnt = 1;
+			largestFreq = 0;
+			diffs[0] = { result[0], 1 };
+
+			for (uint32_t i = 0; i < retryCount; i++) {
+				bool matchFound = false;
+				for (uint32_t j = 0; j < difCnt; j++) {
+					if (diffs[j].wrd == result[i]) {
+						if (diffs[j].wrd != 0x0000) {
+							diffs[j] = { result[i], diffs[j].freq + 1 };
+						}
+						matchFound = true;
+						break;
+					}
+				}
+
+				if (!matchFound) {
+					diffs[difCnt] = { result[i], 1 };
+					difCnt++;
+				}
+			}
+
+			for (uint32_t i = 0; i < difCnt; i++) {
+				if (diffs[i].freq > largestFreq) {
+					result[0] = diffs[i].wrd;
+					largestFreq = diffs[i].freq;
+				}
+			}
+			Serial.write((byte)(result[0] & 0xFF));
+			Serial.write((byte)((result[0] >> 8) & 0xFF));
+			index++;
+		}
+
+		return;
 	case(WRITE):
 		switchMode(MODE_WRITE);
 
 		writeData(address, wrd);
 
 		Serial.println("ACK");
+		return;
+	case(WSTREAM):
+		
+		switchMode(MODE_WRITE);
+		
+		limit = address;
+		index = 0;
+		
+		while (index < limit + 1)
+		{
+			if (Serial.available() > 1)
+			{
+				writeData(index++, Serial.read() | (Serial.read() << 8));
+			}
+		}
 		return;
 #if defined(ARDUINO_TEENSY41)
 	case(DUMP):

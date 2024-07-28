@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Rendering.Composition.Animations;
 using Avalonia.Threading;
 using MsBox.Avalonia.Enums;
 using System;
@@ -241,9 +242,12 @@ namespace DiscoCartUtil
                 byte[] temp_buffer = new byte[1000000];
 
                 port = new(ComPortComboSelectedValue, 4608000);
-
+                port.DtrEnable = true;
+                port.RtsEnable = true;
+                port.ReadBufferSize = temp_buffer.Length;
                 port.Open();
-                
+
+                Thread.Sleep(1000);
                 port.Read(temp_buffer, 0, port.BytesToRead);
 
                 if (BankCombo.SelectedIndex == 0)
@@ -254,45 +258,71 @@ namespace DiscoCartUtil
                 int index = 0;
                 string cmd = string.Empty;
 
-                do
+                if (true)
                 {
-                    if (isClosing)
-                        return;
-
-                    int cmdSent = 0;
+                    port.Write(string.Format("S{0:x}%", Limit));
                     do
                     {
-                        cmd += string.Format("R{0:x}%", index);
-                        cmdSent++;
+                        if (isClosing)
+                            return;
+                      
                         if (index % 0xFFF == 0)
                         {
                             Dispatcher.UIThread.Post(() =>
                             {
-                                progressBar.Value = (int)Math.Round((float)index / Limit * 100.0f);
+                                progressBar.Value = (int)Math.Round((float)index / ((Limit+1)*2) * 100.0f);
                             });
                         }
-                        if (index == Limit)
-                            break;
+                        
+                       int cnt = port.Read(temp_buffer, 0, port.BytesToRead);
+                        
+                        buffer.Write(temp_buffer, 0, cnt);
+                        index += cnt;
 
-                        index++;
-                    } while (index % 100 != 0);
+                    } while (index < ((Limit + 1) * 2));
+                }
+                //else
+                //{
+                //    do
+                //    {
+                //        if (isClosing)
+                //            return;
 
-                    port.Write(cmd);
-                    cmd = string.Empty;
+                //        int cmdSent = 0;
+                //        do
+                //        {
+                //            cmd += string.Format("R{0:x}%", index);
+                //            cmdSent++;
+                //            if (index % 0xFFF == 0)
+                //            {
+                //                Dispatcher.UIThread.Post(() =>
+                //                {
+                //                    progressBar.Value = (int)Math.Round((float)index / Limit * 100.0f);
+                //                });
+                //            }
+                //            if (index == Limit)
+                //                break;
 
-                    while (cmdSent != 0)
-                    {
-                        while (port.BytesToRead < 6) { }
+                //            index++;
+                //        } while (index % 100 != 0);
 
-                        char[] num = new char[6];
-                        port.Read(num, 0, 6);
-                        --cmdSent;
-                        string s = new(num);
+                //        port.Write(cmd);
+                //        cmd = string.Empty;
 
-                        buffer.Write(Convert.ToUInt16(s.Trim(), 16));
-                    }
+                //        while (cmdSent != 0)
+                //        {
+                //            while (port.BytesToRead < 6) { }
 
-                } while (index < Limit);
+                //            char[] num = new char[6];
+                //            port.Read(num, 0, 6);
+                //            --cmdSent;
+                //            string s = new(num);
+
+                //            buffer.Write(Convert.ToUInt16(s.Trim(), 16));
+                //        }
+
+                //    } while (index < Limit + 1);
+                //}
                 
                 Dispatcher.UIThread.Post(() =>
                 {
@@ -383,12 +413,13 @@ namespace DiscoCartUtil
             {
                 DateTime startTime = DateTime.Now;
                 port = new(ComPortComboSelectedValue, 4608000);
+                port.DtrEnable = true;
+                port.RtsEnable = true;
                 port.Open();
                 byte[] bytes = File.ReadAllBytes(FilenameTextText ?? string.Empty);
                 rom = new(File.Open(FilenameTextText ?? string.Empty, FileMode.Open));
 
-                char[] temp_buffer = new char[1000000];
-
+                byte[] temp_buffer = new byte[1000000];
 
                 if (BankCombo.SelectedIndex == 0)
                     port.Write("BLOW%");
@@ -400,29 +431,61 @@ namespace DiscoCartUtil
 
                 int index = 0;
                 string cmd = string.Empty;
-                while (rom.BaseStream.Position != rom.BaseStream.Length)
+                port.Write(string.Format("X{0:x}%", Limit));
+
+                if (true) // streaming upload
                 {
-                    if (isClosing)
-                        return;
-
-                    if (index % 0xFFFF == 0)
+                    int pos = 0;
+                    while (rom.BaseStream.Position != rom.BaseStream.Length)
                     {
-                        Dispatcher.UIThread.Post(() =>
+                        if (isClosing)
+                            return;
+
+                        if (index % 0xFFFF == 0)
                         {
-                            progressBar.Value = Math.Round(index / (bytes.Length / 2.0f) * 100.0f);
-                        });
-                    }
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                progressBar.Value = Math.Round(index / (bytes.Length / 2.0f) * 100.0f);
+                            });
+                        }
 
-                    if (index % 100 == 0)
-                    {
-                        port.Write(cmd);
-                        cmd = string.Empty;
+                        int data = rom.ReadUInt16();
+                        temp_buffer[pos++] = (byte)(data & 0xFF);
+                        temp_buffer[pos++] = (byte)((data >> 8) & 0xFF);
+                        if (pos == 100)
+                        {
+                            port.Write(temp_buffer, 0, 100);
+                            pos = 0;
+                        }
+                        index++;
                     }
-                    cmd += string.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
-                    index++;
+                    port.Write(temp_buffer, 0, pos);
                 }
-                port.Write(cmd);
+                //else // classic upload
+                //{
+                //    while (rom.BaseStream.Position != rom.BaseStream.Length)
+                //    {
+                //        if (isClosing)
+                //            return;
 
+                //        if (index % 0xFFFF == 0)
+                //        {
+                //            Dispatcher.UIThread.Post(() =>
+                //            {
+                //                progressBar.Value = Math.Round(index / (bytes.Length / 2.0f) * 100.0f);
+                //            });
+                //        }
+
+                //        if (index % 100 == 0)
+                //        {
+                //            port.Write(cmd);
+                //            cmd = string.Empty;
+                //        }
+                //        cmd += string.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
+                //        index++;
+                //    }
+                //    port.Write(cmd);
+                //}
 
                 Dispatcher.UIThread.Post(() =>
                 {
