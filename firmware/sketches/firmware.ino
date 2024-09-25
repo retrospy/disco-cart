@@ -18,9 +18,9 @@
 #endif 
 
 #if defined(DISCO_CART_V2)
-	#define WRITE_DATA_WAIT_US 20
+#define WRITE_DATA_WAIT_US 20
 #elif defined(DISCO_CART_V1)
-	#define WRITE_DATA_WAIT_US 10
+#define WRITE_DATA_WAIT_US 10
 #endif
 
 #if defined(ARDUINO_TEENSY41)
@@ -156,7 +156,7 @@ void setupRead()
 #else
 	pinMode(latchEnable1, OUTPUT);
 	digitalWriteFast(latchEnable1, LOW);
-	
+  
 	pinMode(latchEnable2, OUTPUT);
 	digitalWriteFast(latchEnable2, LOW);
 
@@ -168,7 +168,7 @@ void setupRead()
 	}
 	digitalWriteFast(latchEnable2, LOW);
 	digitalWriteFast(latchEnable1, LOW);
-#endif	
+#endif  
 
 	// initialize data bus
 	for (int i = 0; i < DATA_BITS; i++) {
@@ -192,7 +192,7 @@ void setupRead()
 void setup() {
 
 	setupRead();
-	
+  
 	// initialize serial interface
 	Serial.begin(4608000);
 
@@ -225,7 +225,7 @@ void setupWrite() {
 #else
 	pinMode(latchEnable1, OUTPUT);
 	digitalWriteFast(latchEnable1, LOW);
-	
+  
 	pinMode(latchEnable2, OUTPUT);
 	digitalWriteFast(latchEnable2, LOW);
 
@@ -237,7 +237,7 @@ void setupWrite() {
 	}
 	digitalWriteFast(latchEnable2, LOW);
 	digitalWriteFast(latchEnable1, LOW);
-#endif	
+#endif  
 
 	// initialize data bus
 	for (int i = 0; i < DATA_BITS; i++) {
@@ -273,15 +273,15 @@ void setAddress(unsigned int addr) {
 		digitalWriteFast(address[i - 16], bitRead(addr, i));
 	}
 	digitalWriteFast(latchEnable2, LOW);
-	
+  
 	digitalWriteFast(latchEnable1, HIGH);
 	//gpio_put_masked(0xFF << 20, addr << 12);
 	for (int i = 8; i < 16; i++) {
 		digitalWriteFast(address[i - 8], bitRead(addr, i));
 	}
 	digitalWriteFast(latchEnable1, LOW);
-	
-	
+  
+  
 	//gpio_put_masked(0xFF << 20, addr << 20);
 	for (int i = 0; i < 8; i++) {
 		digitalWriteFast(address[i], bitRead(addr, i));
@@ -292,26 +292,26 @@ void setAddress(unsigned int addr) {
 }
 
 void setData(uint16_t wrd) {
-	
-//#if defined(ARDUINO_TEENSY41)
+  
+	//#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < DATA_BITS; i++) {
 		digitalWriteFast(data[i], bitRead(wrd, i));
 	}
-//#else
-//	gpio_put_masked(0xFFFF, wrd);
-//#endif
-	
+	//#else
+	//  gpio_put_masked(0xFFFF, wrd);
+	//#endif
+  
 }
 
 word readWord() {
 	word dataWord = 0;
-//#if defined(ARDUINO_TEENSY41)
+	//#if defined(ARDUINO_TEENSY41)
 	for (int i = 0; i < DATA_BITS; i++) {
 		bitWrite(dataWord, i, digitalReadFast(data[i]));
 	}
-//#else
-//	dataWord = gpio_get_all() & 0xFFFF;
-//#endif
+	//#else
+	//  dataWord = gpio_get_all() & 0xFFFF;
+	//#endif
 	return dataWord;
 }
 
@@ -399,7 +399,7 @@ void eraseData() {
 	{
 		writeWord(i * 0x10000, 0x30);
 	}
-	
+  
 	delay(10000);
 #endif
 }
@@ -471,6 +471,23 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 	{
 		return ERASE;
 	}
+	else if (commandString.startsWith(String('C')))
+	{
+		String retryCountString = commandString.substring(1);
+		address = 0;
+    
+		for (uint32_t i = 0; i < retryCountString.length(); i++)
+		{
+			uint8_t hexDecimal = hexDecimalToBin(retryCountString.charAt(i));
+
+			uint8_t offset = (retryCountString.length() - 1 - i) * 4;
+
+			address = address + ((hexDecimal & 0xF) << offset);
+		}
+    
+		return SETRETRY;
+    
+	}
 	else if (commandString.startsWith(String('R')))
 	{
 		String addressString = commandString.substring(1);
@@ -502,7 +519,7 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 		{
 			return UNKNOWN;
 		}
-		
+    
 		for (uint32_t j = 0; j < splitPoint; j++) {
 			uint8_t offset = (splitPoint - 1 - j) * 4;
 
@@ -575,12 +592,12 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 			uint8_t hexDecimal = hexDecimalToBin(addressString.charAt(i));
 
 			uint8_t offset = (addressString.length() - 1 - i) * 4;
-
+			
 			address = address + ((hexDecimal & 0xF) << offset);
 		}
 
 		address = address & 0x3FFFFF;
-	
+  
 		return RSTREAM;
 	}
 	else {
@@ -628,7 +645,7 @@ void readSerialCommand(String command) {
 	int index;
 	int limit;
 	char fileName[FILE_NAME_LIMIT] = "";
-	
+  
 	switch (stringToCommand(command, address, wrd, fileName)) {
 	case(BANK_LOW):
 		bank = LOW;
@@ -642,6 +659,10 @@ void readSerialCommand(String command) {
 		eraseData();
 
 		Serial.println("ACK");
+		return;
+	case(SETRETRY):
+		retryCount = address;
+		Serial.println(retryCount);
 		return;
 	case(READ):
 		switchMode(MODE_READ);
@@ -684,10 +705,10 @@ void readSerialCommand(String command) {
 		return;
 	case(RSTREAM):
 		switchMode(MODE_READ);
-		
+    
 		index = 0;
 		limit = address;
-		
+    
 		while (index < limit + 1)
 		{
 			for (uint32_t i = 0; i < retryCount; i++) {
@@ -737,12 +758,12 @@ void readSerialCommand(String command) {
 		Serial.println("ACK");
 		return;
 	case(WSTREAM):
-		
+    
 		switchMode(MODE_WRITE);
-		
+    
 		limit = address;
 		index = 0;
-		
+    
 		while (index < limit + 1)
 		{
 			if (Serial.available() > 1)

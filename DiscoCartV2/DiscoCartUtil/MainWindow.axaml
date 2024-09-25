@@ -4,8 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="DiscoCartUtil.MainWindow"
-       Title="V.Smile Disco-Cart Utility" SizeToContent="WidthAndHeight"  MinWidth="480" MinHeight="350" MaxWidth="480" MaxHeight="432" Foreground="#FFFFFF" Background="#e98839" CanResize="false" Opened="Window_Open">
-	<Grid Height="350" Width="480">
+       Title="V.Smile Disco-Cart Utility" SizeToContent="WidthAndHeight"  MinWidth="480" MinHeight="420" MaxWidth="480" MaxHeight="432" Foreground="#FFFFFF" Background="#e98839" CanResize="false" Opened="Window_Open">
+	<Grid Height="420" Width="480">
 		<Label Name="ComPortLabel" Content="COM Port:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="#fdc137" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" FontSize="16"/>
 		<ComboBox Name="ComPortCombo"  Margin="20,30,0,0" Width="447" Height="29.9" VerticalAlignment="Top" BorderBrush="#FF252525" FontFamily="Segoe UI" FontSize="12" Background="#efefef" ItemsSource="{Binding Ports}" SelectedItem="{Binding Ports.SelectedItem}" SelectionChanged="ComPortCombo_SelectionChanged">
 			<ComboBox.ItemTemplate>
@@ -29,15 +29,23 @@
 				<ComboBoxItem Name="Limit8MB">8MB (0x3FFFFF)</ComboBoxItem>
 			</ComboBox.Items>
 		</ComboBox>
-		<Label Name="FilenameLabel"  Content="Filename:" HorizontalAlignment="Left" Margin="10,190,0,0" VerticalAlignment="Top" Foreground="#fdc137" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" FontSize="16" />
-		<TextBox Name="FilenameText" Margin="20,210,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="24" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito"  Background="#efefef" BorderBrush="#FF656525" TextAlignment="Left" Width="400" ScrollViewer.VerticalScrollBarVisibility="Hidden" >
+		<Label Name="RetryCountLabel"  Content="Retry Count:" HorizontalAlignment="Left" Margin="10,190,0,0" VerticalAlignment="Top" Foreground="#fdc137" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" FontSize="16" />
+		<TextBox Name="RetryCountText" Margin="20,210,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="24" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito"  Background="#efefef" BorderBrush="#FF656525" TextAlignment="Left" Width="400" ScrollViewer.VerticalScrollBarVisibility="Hidden" >
+			<TextBox.Styles>
+				<Style Selector="TextBox:disabled">
+					<Setter Property="Foreground" Value="#502310"/>
+				</Style>
+			</TextBox.Styles>
+		</TextBox>
+		<Label Name="FilenameLabel"  Content="Filename:" HorizontalAlignment="Left" Margin="10,250,0,0" VerticalAlignment="Top" Foreground="#fdc137" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" FontSize="16" />
+		<TextBox Name="FilenameText" Margin="20,270,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="24" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito"  Background="#efefef" BorderBrush="#FF656525" TextAlignment="Left" Width="400" ScrollViewer.VerticalScrollBarVisibility="Hidden" >
 			<TextBox.Styles>
 				<Style Selector="TextBox:disabled">
 				<Setter Property="Foreground" Value="#502310"/>
 				</Style>
 			</TextBox.Styles>
 		</TextBox>
-		<Button Name="goButton" Width="40" Height="30" Content="..." HorizontalContentAlignment="Center" Margin="0,210,15,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="SaveAs_Click">
+		<Button Name="goButton" Width="40" Height="30" Content="..." HorizontalContentAlignment="Center" Margin="0,270,15,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="SaveAs_Click">
 			<Button.Styles>
 				<Style Selector="Button:pointerover /template/ ContentPresenter">
 					<Setter Property="Background" Value="#101942"/>
@@ -46,7 +54,7 @@
 				</Style>
 			</Button.Styles>
 		</Button>
-		<Button Name="dumpButton" Width="210" Height="50" Content="Dump" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="20,250,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="Dump_Click">
+		<Button Name="dumpButton" Width="210" Height="50" Content="Dump" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="20,310,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="Dump_Click">
 			<Button.Styles>
 				<Style Selector="Button:pointerover /template/ ContentPresenter">
 					<Setter Property="Background" Value="#101942"/>
@@ -55,7 +63,7 @@
 				</Style>
 			</Button.Styles>
 		</Button>
-		<Button Name="uploadButton" Width="210" Height="50" Content="Upload" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="0,250,15,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="Upload_Click">
+		<Button Name="uploadButton" Width="210" Height="50" Content="Upload" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="0,310,15,0" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#6981cd" Foreground="#fdc137" BorderBrush="#FF252525" Click="Upload_Click">
 			<Button.Styles>
 				<Style Selector="Button:pointerover /template/ ContentPresenter">
 					<Setter Property="Background" Value="#101942"/>
@@ -64,7 +72,7 @@
 				</Style>
 			</Button.Styles>
 		</Button>
-		<ProgressBar  Name="progressBar" ShowProgressText="true" Margin="20,310,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="24" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#efefef" Foreground="#6981cd" BorderBrush="#FF6565" Width="447">
+		<ProgressBar  Name="progressBar" ShowProgressText="true" Margin="20,370,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="24" FontSize="16" FontFamily="/Assets/Carlito-Regular.ttf#Carlito" Background="#efefef" Foreground="#6981cd" BorderBrush="#FF6565" Width="447">
 			
 		</ProgressBar>
 	</Grid>

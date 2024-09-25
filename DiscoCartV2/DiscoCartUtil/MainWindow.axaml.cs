@@ -88,6 +88,8 @@ namespace DiscoCartUtil
 
             UpdatePortList();
             _vm.Ports.SelectIdFromText(Properties.Settings.Default.Port);
+
+            RetryCountText.Text = "35";
         }
 
         private readonly object updatePortLock = new();
@@ -255,6 +257,8 @@ namespace DiscoCartUtil
                 else
                     port.Write("BHI%");
 
+                port.Write(string.Format("C{0:x}%", RetryCount));
+
                 int index = 0;
                 string cmd = string.Empty;
 
@@ -365,6 +369,7 @@ namespace DiscoCartUtil
                     uploadButton.IsEnabled = true;
                     goButton.IsEnabled = true;
                     FilenameText.IsEnabled = true;
+                    RetryCountText.IsEnabled = true;
                     progressBar.Value = 0;
                 });
             }
@@ -372,6 +377,22 @@ namespace DiscoCartUtil
 
         private void Dump_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                string retryCountString = string.Empty;
+                retryCountString = RetryCountText.Text ?? "35";
+                RetryCount = int.Parse(retryCountString);
+
+
+                if (RetryCount < 1)
+                    throw new FormatException();
+            }
+            catch (FormatException)
+            {
+                AvaloniaMessageBox("Disco-Cart Utility", string.Format("Retry count must be an integer greater than 0."), ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error);
+                return;
+            }
+
             ComPortCombo.IsEnabled = false;
             BankCombo.IsEnabled = false;
             LimitCombo.IsEnabled = false;
@@ -379,6 +400,7 @@ namespace DiscoCartUtil
             uploadButton.IsEnabled = false;
             goButton.IsEnabled = false;
             FilenameText.IsEnabled = false;
+            RetryCountText.IsEnabled = false;
 
             ComPortComboSelectedValue = ComPortCombo.SelectedValue?.ToString();
             FilenameTextText = FilenameText?.Text;
@@ -394,6 +416,7 @@ namespace DiscoCartUtil
                     Limit = 0x3FFFFF;
                     break;
             }
+
             Thread thread = new(DumpThread);
             thread.Start();
 
@@ -404,6 +427,7 @@ namespace DiscoCartUtil
         string? ComPortComboSelectedValue;
         string? FilenameTextText;
         int Limit;
+        int RetryCount;
 
         private void UploadThread()
         {
@@ -527,6 +551,7 @@ namespace DiscoCartUtil
                     uploadButton.IsEnabled = true;
                     goButton.IsEnabled = true;
                     FilenameText.IsEnabled = true;
+                    RetryCountText.IsEnabled = true;
                     progressBar.Value = 0;
                 });
             }
@@ -553,6 +578,7 @@ namespace DiscoCartUtil
             uploadButton.IsEnabled = false;
             goButton.IsEnabled = false;
             FilenameText.IsEnabled = false;
+            RetryCountText.IsEnabled = false;
 
             ComPortComboSelectedValue = ComPortCombo.SelectedValue?.ToString();
             FilenameTextText = FilenameText?.Text;
