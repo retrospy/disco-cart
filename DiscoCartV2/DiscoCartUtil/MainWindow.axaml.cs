@@ -261,6 +261,9 @@ namespace DiscoCartUtil
                 } while (cnt == 0);
                 string retC = Encoding.UTF8.GetString(temp_buffer, 0, cnt).Trim();
 
+                Thread.Sleep(1000);
+                port.Read(temp_buffer, 0, port.BytesToRead);
+
                 if (BankCombo.SelectedIndex == 0)
                     port.Write("BLOW%");
                 else
