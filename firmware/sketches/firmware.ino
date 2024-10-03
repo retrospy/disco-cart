@@ -662,7 +662,7 @@ void readSerialCommand(String command) {
 		return;
 	case(SETRETRY):
 		retryCount = address;
-		Serial.println(retryCount);
+		Serial.println("ACK");
 		return;
 	case(READ):
 		switchMode(MODE_READ);

@@ -6,7 +6,7 @@
       <Key>
         <Packager>rp2040</Packager>
         <Name>rp2040</Name>
-        <Version>3.9.4</Version>
+        <Version>4.1.1</Version>
       </Key>
     </Dependency>
   </Dependencies>

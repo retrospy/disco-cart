@@ -11,6 +11,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 namespace DiscoCartUtil
@@ -252,17 +253,23 @@ namespace DiscoCartUtil
                 Thread.Sleep(1000);
                 port.Read(temp_buffer, 0, port.BytesToRead);
 
+                port.Write(string.Format("C{0:x}%", RetryCount));
+                int cnt = 0;
+                do
+                {
+                    cnt = port.Read(temp_buffer, 0, port.BytesToRead);
+                } while (cnt == 0);
+                string retC = Encoding.UTF8.GetString(temp_buffer, 0, cnt).Trim();
+
                 if (BankCombo.SelectedIndex == 0)
                     port.Write("BLOW%");
                 else
                     port.Write("BHI%");
 
-                port.Write(string.Format("C{0:x}%", RetryCount));
-
                 int index = 0;
                 string cmd = string.Empty;
 
-                if (true)
+                if (retC != "Unused")
                 {
                     port.Write(string.Format("S{0:x}%", Limit));
                     do
@@ -278,56 +285,56 @@ namespace DiscoCartUtil
                             });
                         }
                         
-                       int cnt = port.Read(temp_buffer, 0, port.BytesToRead);
+                       cnt = port.Read(temp_buffer, 0, port.BytesToRead);
                         
                         buffer.Write(temp_buffer, 0, cnt);
                         index += cnt;
 
                     } while (index < ((Limit + 1) * 2));
                 }
-                //else
-                //{
-                //    do
-                //    {
-                //        if (isClosing)
-                //            return;
+                else
+                {
+                    do
+                    {
+                        if (isClosing)
+                            return;
 
-                //        int cmdSent = 0;
-                //        do
-                //        {
-                //            cmd += string.Format("R{0:x}%", index);
-                //            cmdSent++;
-                //            if (index % 0xFFF == 0)
-                //            {
-                //                Dispatcher.UIThread.Post(() =>
-                //                {
-                //                    progressBar.Value = (int)Math.Round((float)index / Limit * 100.0f);
-                //                });
-                //            }
-                //            if (index == Limit)
-                //                break;
+                        int cmdSent = 0;
+                        do
+                        {
+                            cmd += string.Format("R{0:x}%", index);
+                            cmdSent++;
+                            if (index % 0xFFF == 0)
+                            {
+                                Dispatcher.UIThread.Post(() =>
+                                {
+                                    progressBar.Value = (int)Math.Round((float)index / Limit * 100.0f);
+                                });
+                            }
+                            if (index == Limit)
+                                break;
 
-                //            index++;
-                //        } while (index % 100 != 0);
+                            index++;
+                        } while (index % 100 != 0);
 
-                //        port.Write(cmd);
-                //        cmd = string.Empty;
+                        port.Write(cmd);
+                        cmd = string.Empty;
 
-                //        while (cmdSent != 0)
-                //        {
-                //            while (port.BytesToRead < 6) { }
+                        while (cmdSent != 0)
+                        {
+                            while (port.BytesToRead < 6) { }
 
-                //            char[] num = new char[6];
-                //            port.Read(num, 0, 6);
-                //            --cmdSent;
-                //            string s = new(num);
+                            char[] num = new char[6];
+                            port.Read(num, 0, 6);
+                            --cmdSent;
+                            string s = new(num);
 
-                //            buffer.Write(Convert.ToUInt16(s.Trim(), 16));
-                //        }
+                            buffer.Write(Convert.ToUInt16(s.Trim(), 16));
+                        }
 
-                //    } while (index < Limit + 1);
-                //}
-                
+                    } while (index < Limit + 1);
+                }
+
                 Dispatcher.UIThread.Post(() =>
                 {
                     AvaloniaMessageBox("Disco-Cart Utility", string.Format("Dump completed in {0} seconds.", (DateTime.Now - startTime).TotalSeconds), ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info);
@@ -435,15 +442,27 @@ namespace DiscoCartUtil
             BinaryReader? rom = null;
             try
             {
+                byte[] temp_buffer = new byte[1000000];
+
                 DateTime startTime = DateTime.Now;
                 port = new(ComPortComboSelectedValue, 4608000);
                 port.DtrEnable = true;
                 port.RtsEnable = true;
                 port.Open();
+
+                Thread.Sleep(1000);
+                port.Read(temp_buffer, 0, port.BytesToRead);
+
+                port.Write(string.Format("C{0:x}%", RetryCount));
+                int cnt = 0;
+                do
+                {
+                    cnt = port.Read(temp_buffer, 0, port.BytesToRead);
+                } while (cnt == 0);
+                string retC = Encoding.UTF8.GetString(temp_buffer, 0, cnt).Trim();
+
                 byte[] bytes = File.ReadAllBytes(FilenameTextText ?? string.Empty);
                 rom = new(File.Open(FilenameTextText ?? string.Empty, FileMode.Open));
-
-                byte[] temp_buffer = new byte[1000000];
 
                 if (BankCombo.SelectedIndex == 0)
                     port.Write("BLOW%");
@@ -455,10 +474,11 @@ namespace DiscoCartUtil
 
                 int index = 0;
                 string cmd = string.Empty;
-                port.Write(string.Format("X{0:x}%", Limit));
 
-                if (true) // streaming upload
+                if (retC != "Unused") // streaming upload
                 {
+                    port.Write(string.Format("X{0:x}%", Limit));
+
                     int pos = 0;
                     while (rom.BaseStream.Position != rom.BaseStream.Length)
                     {
@@ -485,31 +505,31 @@ namespace DiscoCartUtil
                     }
                     port.Write(temp_buffer, 0, pos);
                 }
-                //else // classic upload
-                //{
-                //    while (rom.BaseStream.Position != rom.BaseStream.Length)
-                //    {
-                //        if (isClosing)
-                //            return;
+                else // classic upload
+                {
+                    while (rom.BaseStream.Position != rom.BaseStream.Length)
+                    {
+                        if (isClosing)
+                            return;
 
-                //        if (index % 0xFFFF == 0)
-                //        {
-                //            Dispatcher.UIThread.Post(() =>
-                //            {
-                //                progressBar.Value = Math.Round(index / (bytes.Length / 2.0f) * 100.0f);
-                //            });
-                //        }
+                        if (index % 0xFFFF == 0)
+                        {
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                progressBar.Value = Math.Round(index / (bytes.Length / 2.0f) * 100.0f);
+                            });
+                        }
 
-                //        if (index % 100 == 0)
-                //        {
-                //            port.Write(cmd);
-                //            cmd = string.Empty;
-                //        }
-                //        cmd += string.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
-                //        index++;
-                //    }
-                //    port.Write(cmd);
-                //}
+                        if (index % 100 == 0)
+                        {
+                            port.Write(cmd);
+                            cmd = string.Empty;
+                        }
+                        cmd += string.Format("W{0:x}:{1:x}%", index, rom.ReadUInt16());
+                        index++;
+                    }
+                    port.Write(cmd);
+                }
 
                 Dispatcher.UIThread.Post(() =>
                 {
@@ -559,6 +579,22 @@ namespace DiscoCartUtil
 
         private void Upload_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                string retryCountString = string.Empty;
+                retryCountString = RetryCountText.Text ?? "35";
+                RetryCount = int.Parse(retryCountString);
+
+
+                if (RetryCount < 1)
+                    throw new FormatException();
+            }
+            catch (FormatException)
+            {
+                AvaloniaMessageBox("Disco-Cart Utility", string.Format("Retry count must be an integer greater than 0."), ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error);
+                return;
+            }
+
             switch (LimitCombo.SelectedIndex)
             {
                 case 0:
