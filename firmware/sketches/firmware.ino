@@ -11,8 +11,7 @@
 
 
 #if defined(ARDUINO_TEENSY41)
-//#define DISCO_CART_V1
-#define DISCO_CART_V2
+#define DISCO_CART_V1
 #else
 #define DISCO_CART_V2
 #endif 
