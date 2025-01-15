@@ -472,8 +472,13 @@ namespace DiscoCartUtil
                 else
                     port.Write("BHI%");
 
+                while (port.BytesToRead != 0)
+                {
+                    _ = port.Read(temp_buffer, 0, port.BytesToRead);
+                }
+
                 port.Write("ERS%");
-                Thread.Sleep(10000);
+                while (port.BytesToRead == 0) ;
 
                 int index = 0;
                 string cmd = string.Empty;

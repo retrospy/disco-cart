@@ -396,12 +396,23 @@ void eraseData() {
 #elif defined(DISCO_CART_V2)
 	for (int i = 0; i < 0x40; ++i) // 64KW blocks, 64 per 8MB
 	{
-		writeWord(i * 0x10000, 0x30);
+		writeWord(i * 0x10000, 0x30); // Erase Block
 	}
-  
-	delay(10000);
+ 
+	delay(44000);
+	
 #endif
 }
+
+void eraseAllData() {
+	writeWord(0x555, 0xAA);
+	writeWord(0x2AA, 0x55);
+	writeWord(0x555, 0x80);
+	writeWord(0x555, 0xAA);
+	writeWord(0x2AA, 0x55);
+	writeWord(0x555, 0x10);
+}
+
 
 // Tool to print an integer in a hexadecimal representation
 void printHex(int num, int precision) {
@@ -469,6 +480,10 @@ COMMAND stringToCommand(const String &commandString, uint32_t &address, uint16_t
 	else if (commandString == String("ERS"))
 	{
 		return ERASE;
+	}
+	else if (commandString == String("ERA"))
+	{
+		return ERASE_ALL;
 	}
 	else if (commandString.startsWith(String('C')))
 	{
@@ -656,6 +671,13 @@ void readSerialCommand(String command) {
 		switchMode(MODE_WRITE);
 
 		eraseData();
+
+		Serial.println("ACK");
+		return;
+	case(ERASE_ALL):
+		switchMode(MODE_WRITE);
+
+		eraseAllData();
 
 		Serial.println("ACK");
 		return;
